@@ -293,6 +293,32 @@
         </div>
     </footer>
 
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-app.js";
+        import { getAnalytics } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-analytics.js";
+        import { getFirestore } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-firestore.js";
+        import { getAuth } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-auth.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyAoI3rf-cyZiCYgGDP4OEyvD2rAt1P9G04",
+            authDomain: "servicehub-lk.firebaseapp.com",
+            projectId: "servicehub-lk",
+            storageBucket: "servicehub-lk.firebasestorage.app",
+            messagingSenderId: "806300225388",
+            appId: "1:806300225388:web:592be29d9806c3fdf36d49",
+            measurementId: "G-EVZ41FRLLM"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const analytics = getAnalytics(app);
+        const db = getFirestore(app);
+        const auth = getAuth(app);
+
+        // Export to window for global access in existing functions
+        window.db = db;
+        window.auth = auth;
+    </script>
+
     <script>
         // System Runtime Controls
         let sessionUserRecord = null; 
@@ -654,6 +680,8 @@
         }
 
         function closePortfolioDrawer() {
+            const overlay = document.getElementById('portfolioDrawerOverlay');
+            const body = document.getElementById('portfolioDrawerBody');
             overlay.classList.add('pointer-events-none', 'opacity-0');
             body.classList.add('translate-x-full');
         }
