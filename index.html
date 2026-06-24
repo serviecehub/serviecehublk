@@ -290,6 +290,7 @@
         </div>
     </footer>
 
+    <!-- FIREBASE MODULE INJECTION -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
         import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
@@ -615,7 +616,6 @@
             document.getElementById('authOverlaySystem').classList.replace('flex', 'hidden');
         }
 
-        // UPDATED: Dynamically toggles 'required' to fix login button HTML5 validation block
         function switchAuthTab(tabMode) {
             activeAuthTabState = tabMode;
             const loginTab = document.getElementById('authTabLogin');
@@ -664,7 +664,6 @@
             }
         }
 
-        // UPDATED: Integrates Firebase Authentication & Auto-Login functionality
         async function executeAuthenticationEngine(event) {
             event.preventDefault();
             const submitBtn = document.getElementById('authSubmitButton');
@@ -746,11 +745,18 @@
                             sessionUserRecord = regResult.user;
                             
                             // Push to local arrays so UI works without needing to refresh page
-                            if(providerData) vendorDatabaseCollection.push(providerData);
+                            if(providerData) {
+                                vendorDatabaseCollection.push(providerData);
+                            }
                             internalRegisteredUsers.push(newIdentity);
 
                             alert(`Account created successfully for ${name}. You have been automatically logged in!`);
                             synchronizeUserInterfaceState();
+                            
+                            // UPDATED FIX: Immediately re-evaluates and renders the provider grid 
+                            // so the new provider shows up without needing a hard refresh
+                            evaluateSearchCriteria(); 
+                            
                             closeAuthOverlay();
                         }
                     } else {
