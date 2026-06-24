@@ -60,19 +60,16 @@
     </nav>
 
     <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 md:py-12 flex-grow w-full">
-        
         <div id="customerPortalWorkspace" class="space-y-12">
             <header class="text-center max-w-3xl mx-auto">
                 <h1 class="text-3xl md:text-5xl font-black tracking-tight mb-4 text-slate-900">Find On-Demand Experts in Sri Lanka</h1>
                 <p class="text-slate-500 text-sm md:text-base">Instantly filter through trusted professionals or register your own service profile to receive local work requests.</p>
-                
                 <div class="bg-white p-2 rounded-2xl shadow-xl shadow-slate-200/50 border border-slate-200 flex items-center mt-6">
                     <i data-lucide="search" class="text-slate-400 ml-3 w-5 h-5"></i>
                     <input type="text" id="appKeywordSearchInput" onkeyup="evaluateSearchCriteria()" placeholder="Try 'wedding photographer', 'web developer'..." class="w-full px-3 py-3 outline-none text-slate-700 text-sm md:text-base">
                     <button onclick="resetApplicationState()" class="text-xs font-bold text-slate-400 hover:text-slate-600 px-4 transition whitespace-nowrap">Clear Filter</button>
                 </div>
             </header>
-
             <section class="space-y-4">
                 <div class="flex items-center justify-between border-b border-slate-200 pb-2">
                     <h2 class="text-xs font-bold uppercase tracking-wider text-slate-400 font-mono">Marketplace Service Sectors</h2>
@@ -82,7 +79,6 @@
                 </div>
                 <div id="categoriesGridNode" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3"></div>
             </section>
-
             <section>
                 <div class="border-b border-slate-200 pb-4 mb-6">
                     <h2 class="text-xl font-black text-slate-900">Verified Marketplace Resources</h2>
@@ -90,145 +86,47 @@
                 <div id="providerGridNode" class="grid sm:grid-cols-2 lg:grid-cols-3 gap-6"></div>
             </section>
         </div>
-
         <div id="providerPortalWorkspace" class="hidden space-y-8 animate-in fade-in duration-300">
             <header class="grid sm:grid-cols-3 gap-4">
                 <div class="bg-white border border-slate-200 p-6 rounded-2xl shadow-sm">
                     <span class="block text-xs font-bold text-slate-400 uppercase font-mono tracking-wider">Gross Income Summary (5% Commission System)</span>
                     <h3 id="providerEarningsWidget" class="text-3xl font-black text-slate-900 mt-2">LKR 0.00</h3>
-                    <div class="text-[11px] text-slate-500 font-medium mt-1 space-y-0.5">
-                        <div class="flex justify-between"><span>Total Hired Volume:</span><span id="providerGrossAmt" class="font-bold">LKR 0</span></div>
-                        <div class="flex justify-between text-amber-600"><span>Platform Fee (5%):</span><span id="providerFeeAmt" class="font-bold">-LKR 0</span></div>
-                        <div class="flex justify-between text-emerald-600 border-t border-slate-100 pt-0.5"><span>Net Remittance Yield:</span><span id="providerNetAmt" class="font-bold">LKR 0</span></div>
-                    </div>
                 </div>
                 <div class="bg-white border border-slate-200 p-6 rounded-2xl shadow-sm flex flex-col justify-between">
                     <div>
                         <span class="block text-xs font-bold text-slate-400 uppercase font-mono tracking-wider">Jobs Assigned To Me</span>
                         <h3 id="providerActiveCountWidget" class="text-3xl font-black text-primary mt-2">0 Requests</h3>
                     </div>
-                    <p class="text-[10px] text-slate-400">Active client operational pipelines</p>
                 </div>
                 <div class="bg-white border border-slate-200 p-6 rounded-2xl shadow-sm flex flex-col justify-between">
                     <div>
                         <span class="block text-xs font-bold text-slate-400 uppercase font-mono tracking-wider">Public Trust Rating</span>
                         <h3 id="providerRatingWidget" class="text-3xl font-black text-amber-500 mt-2">⭐ 5.0</h3>
                     </div>
-                    <p class="text-[10px] text-slate-400">Recalculated from verified client reviews</p>
                 </div>
             </header>
-
             <section class="bg-white border border-slate-200 rounded-3xl overflow-hidden shadow-sm">
                 <div class="p-6 border-b border-slate-200 bg-slate-50/50 flex justify-between items-center">
                     <div>
-                        <h2 class="text-lg font-black text-slate-900">Client Assignments Ledger (Inbound Contracts)</h2>
-                        <p class="text-xs text-slate-500">Track incoming customer hires, execute structural milestones, and process payouts.</p>
+                        <h2 class="text-lg font-black text-slate-900">Client Assignments Ledger</h2>
                     </div>
-                    <span class="bg-blue-100 text-primary text-[10px] font-black uppercase px-2.5 py-1 rounded-full font-mono">Live Inbound Hires</span>
                 </div>
                 <div class="divide-y divide-slate-200" id="providerAppointmentsListNode"></div>
             </section>
         </div>
     </main>
 
-    <div id="customerOrdersModal" class="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm hidden items-center justify-center p-4">
-        <div class="bg-white rounded-3xl w-full max-w-2xl p-6 shadow-2xl relative border border-slate-100 animate-in zoom-in-95 duration-200">
-            <button onclick="closeCustomerOrdersModal()" class="absolute top-4 right-4 text-slate-400 hover:text-slate-600 transition"><i data-lucide="x" class="w-5 h-5"></i></button>
-            <div class="mb-4">
-                <h3 class="text-xl font-black text-slate-900">Your Active Hired Services</h3>
-                <p class="text-xs text-slate-500">Track processing pipelines and escrow metrics for your active operators.</p>
-            </div>
-            <div id="customerOrdersModalContent" class="space-y-4 divide-y divide-slate-100 max-h-[60vh] overflow-y-auto custom-scrollbar pr-1"></div>
-        </div>
-    </div>
-
-    <div id="portfolioDrawerOverlay" class="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm opacity-0 pointer-events-none transition-opacity duration-300 flex justify-end">
-        <div id="portfolioDrawerBody" class="w-full max-w-2xl bg-white h-full shadow-2xl translate-x-full transition-transform duration-300 flex flex-col">
-            <div class="p-6 border-b border-slate-200 flex justify-between items-start bg-slate-50">
-                <div>
-                    <div class="flex items-center gap-2 mb-1">
-                        <span id="drawerBadge" class="bg-blue-100 text-primary px-2.5 py-0.5 rounded-full text-xs font-bold font-mono">Tier</span>
-                        <div class="flex items-center text-amber-500 text-sm font-bold gap-0.5">⭐ <span id="drawerStars">5.0</span></div>
-                    </div>
-                    <h2 id="drawerProviderName" class="text-2xl font-black text-slate-900">Resource Registry Identification</h2>
-                    <p id="drawerCategory" class="text-sm font-bold text-primary">Structural Discipline Domain</p>
-                </div>
-                <button onclick="closePortfolioDrawer()" class="bg-white p-2 rounded-xl border border-slate-200 text-slate-400 hover:text-slate-600 shadow-sm transition">
-                    <i data-lucide="x" class="w-5 h-5"></i>
-                </button>
-            </div>
-
-            <div class="p-6 overflow-y-auto flex-grow custom-scrollbar space-y-8">
-                <div>
-                    <h3 class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-2 font-mono">Location Domain</h3>
-                    <div class="flex items-center gap-2 text-sm text-slate-700 bg-slate-50 p-3 rounded-xl border border-slate-100">
-                        <i data-lucide="map-pin" class="text-slate-400 w-4 h-4"></i> <span id="drawerLocation">N/A</span>
-                    </div>
-                </div>
-
-                <div>
-                    <h3 class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-3 font-mono">Project Showcase Showcase</h3>
-                    <div id="drawerPhotosGridNode" class="grid grid-cols-2 gap-3"></div>
-                </div>
-
-                <div class="bg-slate-50 border border-slate-200 rounded-2xl p-5">
-                    <div class="flex items-center justify-between mb-4">
-                        <h3 class="text-sm font-bold text-slate-800 flex items-center gap-1.5">
-                            <i data-lucide="lock" class="w-4 h-4 text-slate-400" id="reviewLockIcon"></i> Client Evaluation Entry Node
-                        </h3>
-                        <span id="reviewEligibilityStatusBadge" class="text-[10px] font-bold font-mono px-2 py-0.5 rounded-md bg-red-50 text-red-600 border border-red-100">Locked System</span>
-                    </div>
-                    
-                    <div id="reviewInputGateForm" class="hidden space-y-4">
-                        <div>
-                            <label class="block text-xs font-bold text-slate-500 mb-1">Star Score Allocation</label>
-                            <div class="flex items-center gap-1 text-slate-300" id="ratingStarPickerContainer"></div>
-                        </div>
-                        <div>
-                            <label class="block text-xs font-bold text-slate-500 mb-1">Your Honest Review Experience</label>
-                            <textarea id="txtReviewCommentInput" rows="3" placeholder="Describe the service execution..." class="w-full bg-white border border-slate-200 rounded-xl p-3 text-xs md:text-sm focus:border-primary outline-none"></textarea>
-                        </div>
-                        <div>
-                            <label class="block text-xs font-bold text-slate-500 mb-1">Attach Service Delivery Photos</label>
-                            <input type="file" id="fileReviewPhotoInput" accept="image/*" class="w-full text-xs text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-bold file:bg-blue-50 file:text-primary hover:file:bg-blue-100 cursor-pointer">
-                        </div>
-                        <button onclick="commitReviewToDatabase()" class="w-full bg-success text-white text-xs font-bold py-3 rounded-xl hover:bg-emerald-600 transition">Publish Verified Review</button>
-                    </div>
-
-                    <div id="reviewInputGateNotice" class="text-xs text-slate-400 leading-relaxed">
-                        Security verification active. Reviews can only be left by customers who have hired this provider and whose project is marked as "COMPLETED" by the professional.
-                    </div>
-                </div>
-
-                <div>
-                    <h3 class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-3 font-mono">Community Reviews & Logs</h3>
-                    <div id="drawerReviewsTimelineNode" class="space-y-4"></div>
-                </div>
-            </div>
-
-            <div class="p-4 border-t border-slate-200 bg-slate-50 flex items-center justify-between">
-                <div>
-                    <span class="block text-[10px] font-bold text-slate-400 font-mono uppercase">Service Base Rate</span>
-                    <span id="drawerFooterPrice" class="text-base font-black text-slate-800">LKR 00.00</span>
-                </div>
-                <button id="btnDrawerPrimaryAction" onclick="initiateServiceContract()" class="bg-primary text-white font-bold text-sm py-3 px-6 rounded-xl hover:bg-blue-700 transition">Hire This Professional</button>
-            </div>
-        </div>
-    </div>
-
     <div id="authOverlaySystem" class="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm hidden items-center justify-center p-4">
         <div class="bg-white rounded-3xl w-full max-w-md p-6 shadow-2xl relative border border-slate-100 animate-in zoom-in-95 duration-150">
             <button onclick="closeAuthOverlay()" class="absolute top-4 right-4 text-slate-400 hover:text-slate-600 transition"><i data-lucide="x" class="w-5 h-5"></i></button>
-            
             <div class="flex border-b border-slate-200 mb-6">
                 <button id="authTabLogin" onclick="switchAuthTab('login')" class="flex-1 pb-3 text-center text-sm font-bold border-b-2 text-primary border-primary">Account Sign In</button>
                 <button id="authTabRegister" onclick="switchAuthTab('register')" class="flex-1 pb-3 text-center text-sm font-bold border-b-2 text-slate-400 border-transparent">New Registration</button>
             </div>
-
-            <form onsubmit="executeAuthenticationEngine(event)" class="space-y-4">
+            <form id="authFormElement" class="space-y-4">
                 <div id="loginFieldsContainer" class="space-y-4">
                     <div>
-                        <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1 font-mono">Email Address</label>
+                        <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1 font-mono">Email</label>
                         <input type="email" id="loginEmail" required class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm outline-none focus:border-primary">
                     </div>
                     <div>
@@ -236,10 +134,9 @@
                         <input type="password" id="loginPassword" required class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm outline-none focus:border-primary">
                     </div>
                 </div>
-
                 <div id="registerFieldsContainer" class="space-y-4 hidden">
                     <div>
-                        <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1 font-mono">Full Name / Business Title</label>
+                        <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1 font-mono">Full Name</label>
                         <input type="text" id="authFormName" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm outline-none focus:border-primary">
                     </div>
                     <div>
@@ -247,57 +144,19 @@
                         <input type="email" id="authFormEmail" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm outline-none focus:border-primary">
                     </div>
                     <div>
-                        <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1 font-mono">Phone Number</label>
-                        <input type="tel" id="authFormPhone" placeholder="07xxxxxxxx" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm outline-none focus:border-primary">
-                    </div>
-                    <div>
-                        <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1 font-mono">Account Profile Designation</label>
-                        <select id="authFormRole" onchange="toggleRegistrationFields()" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm outline-none">
-                            <option value="Customer">Customer (Looking to hire services)</option>
-                            <option value="Provider">Service Provider (Offering skills/portfolio)</option>
-                        </select>
-                    </div>
-                    <div id="providerSpecificFields" class="space-y-4 hidden">
-                        <div>
-                            <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1 font-mono">NIC Number</label>
-                            <input type="text" id="authFormNIC" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm outline-none focus:border-primary">
-                        </div>
-                        <div>
-                            <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1 font-mono">Service Expertise Category</label>
-                            <select id="authFormCategory" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm outline-none">
-                                <option value="Photography">Photography</option>
-                                <option value="Web Development">Web Development</option>
-                                <option value="Home Plumbing">Home Plumbing</option>
-                                <option value="Graphic Design">Graphic Design</option>
-                            </select>
-                        </div>
-                        <div>
-                            <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1 font-mono">Operational Location Matrix</label>
-                            <input type="text" id="authFormLocation" placeholder="e.g. Galle / Colombo, LK" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm outline-none focus:border-primary">
-                        </div>
-                        <div>
-                            <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1 font-mono">Base Rate Value Layout (LKR)</label>
-                            <input type="text" id="authFormRates" placeholder="e.g. LKR 50,000 Base" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm outline-none focus:border-primary">
-                        </div>
+                        <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1 font-mono">Password</label>
+                        <input type="password" id="authFormPassword" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm outline-none focus:border-primary">
                     </div>
                 </div>
-
-                <button type="submit" id="authSubmitButton" class="w-full bg-primary text-white font-bold py-3 rounded-xl text-sm shadow-md hover:bg-blue-700 transition">Authorize Session Access</button>
+                <button type="submit" id="authSubmitButton" class="w-full bg-primary text-white font-bold py-3 rounded-xl text-sm shadow-md hover:bg-blue-700 transition">Authorize Access</button>
             </form>
         </div>
     </div>
 
-    <footer class="bg-slate-900 text-slate-500 text-xs py-8 border-t border-slate-800 mt-12">
-        <div class="max-w-7xl mx-auto px-4 text-center">
-            <p class="font-bold text-slate-400">ServiceHub Lanka Security Layer Architecture &copy; 2026</p>
-        </div>
-    </footer>
-
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-app.js";
-        import { getAnalytics } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-analytics.js";
-        import { getFirestore } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-firestore.js";
-        import { getAuth } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-auth.js";
+        import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-auth.js";
+        import { getFirestore, doc, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-firestore.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyAoI3rf-cyZiCYgGDP4OEyvD2rAt1P9G04",
@@ -305,391 +164,86 @@
             projectId: "servicehub-lk",
             storageBucket: "servicehub-lk.firebasestorage.app",
             messagingSenderId: "806300225388",
-            appId: "1:806300225388:web:592be29d9806c3fdf36d49",
-            measurementId: "G-EVZ41FRLLM"
+            appId: "1:806300225388:web:592be29d9806c3fdf36d49"
         };
 
         const app = initializeApp(firebaseConfig);
-        const analytics = getAnalytics(app);
-        const db = getFirestore(app);
         const auth = getAuth(app);
+        const db = getFirestore(app);
 
-        // Export to window for global access in existing functions
-        window.db = db;
         window.auth = auth;
+        window.db = db;
+        window.signInWithEmailAndPassword = signInWithEmailAndPassword;
+        window.createUserWithEmailAndPassword = createUserWithEmailAndPassword;
+        window.signOut = signOut;
+        window.doc = doc;
+        window.setDoc = setDoc;
+        window.getDoc = getDoc;
     </script>
 
     <script>
-        // System Runtime Controls
-        let sessionUserRecord = null; 
-        let activeScopeCategoryFilter = null;
-        let selectedReviewFormScore = 5;
-        let targetingVendorInstanceId = null;
+        let sessionUserRecord = null;
         let activeAuthTabState = "login";
 
-        window.addEventListener('DOMContentLoaded', () => {
-            generateCategoryGridInterface();
-            evaluateSearchCriteria();
-            synchronizeUserInterfaceState();
-            lucide.createIcons();
-        });
-
-        function generateCategoryGridInterface() {
-            const containerNode = document.getElementById('categoriesGridNode');
-            containerNode.innerHTML = '';
-            applicationCategoryManifest.forEach(catItem => {
-                const blockElement = document.createElement('div');
-                blockElement.id = `category-card-${catItem.name.replace(/\s+/g, '')}`;
-                blockElement.className = "bg-white border border-slate-200 rounded-2xl p-4 text-center cursor-pointer select-none shadow-sm hover:border-primary transition flex flex-col items-center justify-center group";
-                blockElement.onclick = () => routeCategorySelectionFilter(catItem.name);
-                blockElement.innerHTML = `
-                    <div class="p-3 bg-slate-50 text-slate-600 rounded-xl group-hover:bg-blue-50 group-hover:text-primary transition mb-2">
-                        <i data-lucide="${catItem.icon}" class="w-5 h-5"></i>
-                    </div>
-                    <span class="text-xs font-bold text-slate-800 block">${catItem.name}</span>
-                `;
-                containerNode.appendChild(blockElement);
-            });
-        }
-
-        function routeCategorySelectionFilter(targetCategoryName) {
-            document.querySelectorAll('[id^="category-card-"]').forEach(el => el.classList.remove('border-primary', 'bg-blue-50/20'));
-            if (activeScopeCategoryFilter === targetCategoryName) {
-                activeScopeCategoryFilter = null;
-            } else {
-                activeScopeCategoryFilter = targetCategoryName;
-                document.getElementById(`category-card-${targetCategoryName.replace(/\s+/g, '')}`).classList.add('border-primary', 'bg-blue-50/20');
+        async function executeAuthenticationEngine(event) {
+            event.preventDefault();
+            try {
+                if (activeAuthTabState === 'login') {
+                    const email = document.getElementById('loginEmail').value;
+                    const pass = document.getElementById('loginPassword').value;
+                    const userCredential = await window.signInWithEmailAndPassword(window.auth, email, pass);
+                    const userDoc = await window.getDoc(window.doc(window.db, "users", userCredential.user.uid));
+                    sessionUserRecord = userDoc.data();
+                } else {
+                    const name = document.getElementById('authFormName').value;
+                    const email = document.getElementById('authFormEmail').value;
+                    const pass = document.getElementById('authFormPassword').value;
+                    const userCredential = await window.createUserWithEmailAndPassword(window.auth, email, pass);
+                    sessionUserRecord = { name, email, role: "Customer", id: userCredential.user.uid };
+                    await window.setDoc(window.doc(window.db, "users", userCredential.user.uid), sessionUserRecord);
+                }
+                synchronizeUserInterfaceState();
+                closeAuthOverlay();
+            } catch (error) {
+                alert("Auth Error: " + error.message);
             }
-            evaluateSearchCriteria();
         }
 
-        function evaluateSearchCriteria() {
-            const searchTokenQuery = document.getElementById('appKeywordSearchInput').value.toLowerCase().trim();
-            const filteredOutcomes = vendorDatabaseCollection.filter(item => {
-                const evaluationCategoryMatch = activeScopeCategoryFilter ? (item.category === activeScopeCategoryFilter) : true;
-                const evaluationKeywordMatch = searchTokenQuery ? (
-                    item.name.toLowerCase().includes(searchTokenQuery) ||
-                    item.category.toLowerCase().includes(searchTokenQuery) ||
-                    item.keywords.some(kw => kw.includes(searchTokenQuery))
-                ) : true;
-                return evaluationCategoryMatch && evaluationKeywordMatch;
-            });
-            renderVendorDeckInterface(filteredOutcomes);
-        }
+        document.getElementById('authFormElement').onsubmit = executeAuthenticationEngine;
 
-        function renderVendorDeckInterface(renderArrayData) {
-            const displayTargetNode = document.getElementById('providerGridNode');
-            displayTargetNode.innerHTML = '';
-            
-            renderArrayData.forEach(vendor => {
-                const isPremium = vendor.tier === "Premium";
-                const cardNodeItem = document.createElement('div');
-                cardNodeItem.className = `bg-white border border-slate-200 rounded-3xl p-5 shadow-sm flex flex-col justify-between h-full hover:shadow-md transition ${isPremium ? 'glass-premium border-amber-400 relative overflow-hidden' : ''}`;
-                
-                let premiumBanner = isPremium ? `<div class="absolute top-0 right-0 bg-amber-500 text-white font-black text-[9px] uppercase px-3 py-1 rounded-bl-xl tracking-wider flex items-center gap-1"><i data-lucide="zap" class="w-2.5 h-2.5 fill-white"></i> Premium</div>` : '';
-
-                cardNodeItem.innerHTML = `
-                    ${premiumBanner}
-                    <div>
-                        <div class="flex items-center justify-between mb-3">
-                            <span class="text-[10px] font-black uppercase tracking-widest bg-blue-50 text-primary px-2.5 py-1 rounded-md font-mono">${vendor.category}</span>
-                            <span class="text-xs font-mono font-bold text-slate-500">⭐ ${vendor.stars.toFixed(1)}</span>
-                        </div>
-                        <h3 class="text-lg font-black text-slate-900 mb-1 flex items-center gap-1.5">
-                            ${vendor.name} ${vendor.verified ? '<i data-lucide="check-circle" class="w-4 h-4 text-blue-500 fill-blue-50"></i>' : ''}
-                        </h3>
-                        <p class="text-xs text-slate-500 flex items-center gap-1 mb-4"><i data-lucide="map-pin" class="w-3 h-3"></i> ${vendor.location}</p>
-                    </div>
-                    <button onclick="deployPortfolioDrawer(${vendor.id})" class="w-full ${isPremium ? 'bg-amber-500 hover:bg-amber-600' : 'bg-slate-900 hover:bg-black'} text-white font-bold text-xs py-3 rounded-xl transition">View Profile & Reviews</button>
-                `;
-                displayTargetNode.appendChild(cardNodeItem);
-            });
-            lucide.createIcons();
+        function switchAuthTab(tabMode) {
+            activeAuthTabState = tabMode;
+            document.getElementById('loginFieldsContainer').classList.toggle('hidden', tabMode !== 'login');
+            document.getElementById('registerFieldsContainer').classList.toggle('hidden', tabMode !== 'register');
+            document.getElementById('authSubmitButton').innerText = tabMode === 'login' ? "Authorize Access" : "Create Account";
         }
 
         function synchronizeUserInterfaceState() {
             if(!sessionUserRecord) {
                 document.getElementById('loggedInUI').classList.add('hidden');
                 document.getElementById('loggedOutUI').classList.remove('hidden');
-                document.getElementById('customerPortalWorkspace').classList.remove('hidden');
-                document.getElementById('providerPortalWorkspace').classList.add('hidden');
-                return;
-            }
-
-            document.getElementById('loggedOutUI').classList.add('hidden');
-            document.getElementById('loggedInUI').classList.remove('hidden');
-            document.getElementById('activeUserToken').innerText = sessionUserRecord.name;
-            
-            const roleBadge = document.getElementById('userRoleBadge');
-            roleBadge.innerText = sessionUserRecord.role;
-
-            if(sessionUserRecord.role === "Customer") {
-                roleBadge.className = "text-[10px] font-mono font-black uppercase bg-blue-600 text-white px-2 py-1 rounded";
-                document.getElementById('customerPortalWorkspace').classList.remove('hidden');
-                document.getElementById('providerPortalWorkspace').classList.add('hidden');
-                document.getElementById('btnCustomerTrackOrders').classList.remove('hidden');
-                document.getElementById('btnProviderUpgradeTier').classList.add('hidden');
             } else {
-                roleBadge.className = "text-[10px] font-mono font-black uppercase bg-purple-600 text-white px-2 py-1 rounded";
-                document.getElementById('customerPortalWorkspace').classList.add('hidden');
-                document.getElementById('providerPortalWorkspace').classList.remove('hidden');
-                document.getElementById('btnCustomerTrackOrders').classList.add('hidden');
-                
-                const targetVendor = vendorDatabaseCollection.find(v => v.id === sessionUserRecord.associatedProviderId);
-                if(targetVendor && targetVendor.tier !== "Premium") {
-                    document.getElementById('btnProviderUpgradeTier').classList.remove('hidden');
-                } else {
-                    document.getElementById('btnProviderUpgradeTier').classList.add('hidden');
-                }
-
-                renderProviderAppointmentsLedger(sessionUserRecord.associatedProviderId);
+                document.getElementById('loggedInUI').classList.remove('hidden');
+                document.getElementById('loggedOutUI').classList.add('hidden');
+                document.getElementById('activeUserToken').innerText = sessionUserRecord.name;
             }
         }
 
-        function renderProviderAppointmentsLedger(providerIdContext) {
-            const listNode = document.getElementById('providerAppointmentsListNode');
-            const matchingContracts = persistentContractsCollection.filter(c => c.providerId === providerIdContext);
-            const matchingVendorRecord = vendorDatabaseCollection.find(v => v.id === providerIdContext);
-            
-            const totalGrossVolume = matchingContracts.reduce((acc, current) => acc + current.basePriceValue, 0);
-            const totalCommissionWithheld = totalGrossVolume * 0.05;
-            const netProviderYield = totalGrossVolume - totalCommissionWithheld;
-            const activeContractsCount = matchingContracts.filter(c => c.contractStep < 2).length;
-
-            document.getElementById('providerEarningsWidget').innerText = `LKR ${netProviderYield.toLocaleString()}`;
-            document.getElementById('providerGrossAmt').innerText = `LKR ${totalGrossVolume.toLocaleString()}`;
-            document.getElementById('providerFeeAmt').innerText = `-LKR ${totalCommissionWithheld.toLocaleString()}`;
-            document.getElementById('providerNetAmt').innerText = `LKR ${netProviderYield.toLocaleString()}`;
-            
-            document.getElementById('providerActiveCountWidget').innerText = `${activeContractsCount} Pending`;
-            if(matchingVendorRecord) {
-                document.getElementById('providerRatingWidget').innerText = `⭐ ${matchingVendorRecord.stars.toFixed(1)} (${matchingVendorRecord.tier})`;
-            }
-
-            if(matchingContracts.length === 0) {
-                listNode.innerHTML = `<div class="p-12 text-center text-slate-400 text-xs font-medium">No clients have hired your profile services yet.</div>`;
-                return;
-            }
-
-            listNode.innerHTML = matchingContracts.map(job => {
-                let statusBadgeHtml = "";
-                let progressionButtonActionHtml = "";
-
-                if(job.contractStep === 0) {
-                    statusBadgeHtml = `<span class="bg-blue-50 text-blue-600 border border-blue-100 text-[10px] font-bold font-mono px-2 py-0.5 rounded">HIRED</span>`;
-                    progressionButtonActionHtml = `<button onclick="advanceContractStateFromProviderPortal('${job.contractId}')" class="bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold px-3 py-1.5 rounded-lg transition shadow-sm">Accept & Start Work</button>`;
-                } else if(job.contractStep === 1) {
-                    statusBadgeHtml = `<span class="bg-amber-50 text-amber-600 border border-amber-100 text-[10px] font-bold font-mono px-2 py-0.5 rounded">IN PROGRESS</span>`;
-                    progressionButtonActionHtml = `<button onclick="advanceContractStateFromProviderPortal('${job.contractId}')" class="bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold px-3 py-1.5 rounded-lg transition shadow-sm">Mark As Completed</button>`;
-                } else {
-                    statusBadgeHtml = `<span class="bg-emerald-50 text-emerald-600 border border-emerald-100 text-[10px] font-bold font-mono px-2 py-0.5 rounded">COMPLETED</span>`;
-                    progressionButtonActionHtml = `<span class="text-xs text-slate-400 italic font-medium flex items-center gap-1"><i data-lucide="check-circle" class="w-3.5 h-3.5 text-emerald-500"></i> Remitted</span>`;
-                }
-
-                const jobGross = job.basePriceValue;
-                const jobFee = jobGross * 0.05;
-                const jobNet = jobGross - jobFee;
-
-                return `
-                    <div class="p-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white hover:bg-slate-50/50 transition">
-                        <div class="space-y-1.5">
-                            <div class="flex items-center gap-2">
-                                <span class="text-xs font-bold text-slate-400 font-mono bg-slate-100 px-1.5 py-0.5 rounded">Client:</span>
-                                <h4 class="text-sm font-black text-slate-900">${job.customerName}</h4>
-                                ${statusBadgeHtml}
-                            </div>
-                            <p class="text-xs text-slate-500">Order Ref: <span class="font-mono text-slate-700 font-semibold">${job.contractId}</span> | Gross: <span class="font-bold">LKR ${jobGross.toLocaleString()}</span> | Fee (5%): <span class="text-amber-600 font-bold">-LKR ${jobFee.toLocaleString()}</span> | Net Remit: <span class="text-emerald-600 font-bold">LKR ${jobNet.toLocaleString()}</span></p>
-                        </div>
-                        <div class="shrink-0">${progressionButtonActionHtml}</div>
-                    </div>
-                `;
-            }).join('');
-            lucide.createIcons();
-        }
-
-        function advanceContractStateFromProviderPortal(targetContractId) {
-            const targetContractRecord = persistentContractsCollection.find(c => c.contractId === targetContractId);
-            if(!targetContractRecord) return;
-
-            if(targetContractRecord.contractStep < 2) {
-                targetContractRecord.contractStep++;
-                synchronizeUserInterfaceState();
-            }
-        }
-
-        function triggerProviderUpgrade() {
-            if(!sessionUserRecord || sessionUserRecord.role !== "Provider") return;
-            const vendorObj = vendorDatabaseCollection.find(v => v.id === sessionUserRecord.associatedProviderId);
-            if(vendorObj) {
-                vendorObj.tier = "Premium";
-                alert(`${vendorObj.name} has been upgraded to Premium Tier status.`);
-                synchronizeUserInterfaceState();
-                evaluateSearchCriteria();
-            }
-        }
-
-        function openAuthOverlay(mode = 'login') {
+        function openAuthOverlay(mode) {
+            activeAuthTabState = mode;
             document.getElementById('authOverlaySystem').classList.replace('hidden', 'flex');
-            switchAuthTab(mode);
         }
 
-        function closeAuthOverlay() {
-            document.getElementById('authOverlaySystem').classList.replace('flex', 'hidden');
-        }
-
-        function switchAuthTab(tabMode) {
-            activeAuthTabState = tabMode;
-            const loginTab = document.getElementById('authTabLogin');
-            const registerTab = document.getElementById('authTabRegister');
-            const loginFields = document.getElementById('loginFieldsContainer');
-            const registerFields = document.getElementById('registerFieldsContainer');
-            const submitBtn = document.getElementById('authSubmitButton');
-
-            if(tabMode === 'login') {
-                loginTab.className = "flex-1 pb-3 text-center text-sm font-bold border-b-2 text-primary border-primary";
-                registerTab.className = "flex-1 pb-3 text-center text-sm font-bold border-b-2 text-slate-400 border-transparent";
-                loginFields.classList.remove('hidden');
-                registerFields.classList.add('hidden');
-                submitBtn.innerText = "Authorize Access Session";
-            } else {
-                registerTab.className = "flex-1 pb-3 text-center text-sm font-bold border-b-2 text-primary border-primary";
-                loginTab.className = "flex-1 pb-3 text-center text-sm font-bold border-b-2 text-slate-400 border-transparent";
-                loginFields.classList.add('hidden');
-                registerFields.classList.remove('hidden');
-                submitBtn.innerText = "Create & Mount Account Profile";
-                toggleRegistrationFields();
-            }
-        }
-
-        function toggleRegistrationFields() {
-            const currentSelectedRole = document.getElementById('authFormRole').value;
-            const customProviderFieldsNode = document.getElementById('providerSpecificFields');
-            if(currentSelectedRole === 'Provider') {
-                customProviderFieldsNode.classList.remove('hidden');
-            } else {
-                customProviderFieldsNode.classList.add('hidden');
-            }
-        }
-
-        function executeAuthenticationEngine(event) {
-            event.preventDefault();
-            if(activeAuthTabState === 'login') {
-                const email = document.getElementById('loginEmail').value.trim();
-                const pass = document.getElementById('loginPassword').value.trim();
-                const user = internalRegisteredUsers.find(u => u.email === email && u.password === pass);
-                
-                if(user) {
-                    sessionUserRecord = user;
-                    alert(`Welcome back, ${user.name}!`);
-                } else {
-                    alert("Invalid email or password.");
-                    return;
-                }
-            } else {
-                const name = document.getElementById('authFormName').value.trim();
-                const email = document.getElementById('authFormEmail').value.trim();
-                const phone = document.getElementById('authFormPhone').value.trim();
-                const role = document.getElementById('authFormRole').value;
-                
-                if(!name || !email || !phone) {
-                    alert("Please fill in required fields (Name, Email, Phone).");
-                    return;
-                }
-
-                let assignedProviderId = null;
-                if(role === "Provider") {
-                    const nic = document.getElementById('authFormNIC').value.trim();
-                    if(!nic) { alert("NIC is required for Providers."); return; }
-                    
-                    assignedProviderId = vendorDatabaseCollection.length + 1;
-                    vendorDatabaseCollection.push({
-                        id: assignedProviderId,
-                        name: name,
-                        category: document.getElementById('authFormCategory').value,
-                        location: document.getElementById('authFormLocation').value || "Sri Lanka",
-                        stars: 5.0,
-                        tier: "Standard Pro",
-                        verified: false,
-                        rates: document.getElementById('authFormRates').value || "LKR 10,000",
-                        keywords: ["expert", "new"],
-                        photos: [],
-                        reviews: []
-                    });
-                }
-
-                const newIdentity = {
-                    id: `USR-${Math.floor(Math.random() * 9000)}`,
-                    name: name,
-                    role: role,
-                    email: email,
-                    password: "user123", // Simplified for simulation
-                    associatedProviderId: assignedProviderId
-                };
-
-                internalRegisteredUsers.push(newIdentity);
-                sessionUserRecord = newIdentity;
-                alert(`Account created for ${name}.`);
-            }
-
-            synchronizeUserInterfaceState();
-            closeAuthOverlay();
-        }
-
-        function terminateSession() {
-            sessionUserRecord = null;
-            synchronizeUserInterfaceState();
-            closePortfolioDrawer();
-        }
-
-        function openCustomerOrdersModal() {
-            const container = document.getElementById('customerOrdersModalContent');
-            if(!sessionUserRecord) return;
-            
-            const matchingCustomerContracts = persistentContractsCollection.filter(c => c.customerId === sessionUserRecord.id);
-            if(matchingCustomerContracts.length === 0) {
-                container.innerHTML = `<p class="text-xs text-slate-400 py-6 text-center italic">No active operations.</p>`;
-            } else {
-                container.innerHTML = matchingCustomerContracts.map(job => `
-                    <div class="py-4 space-y-3">
-                        <h4 class="text-sm font-black">${job.providerName}</h4>
-                        <div class="text-[10px] font-mono bg-slate-100 p-2 rounded">Status: ${job.contractStep === 2 ? 'COMPLETED' : 'PENDING'}</div>
-                    </div>
-                `).join('');
-            }
-            document.getElementById('customerOrdersModal').classList.replace('hidden', 'flex');
-        }
-
-        function closeCustomerOrdersModal() { document.getElementById('customerOrdersModal').classList.replace('flex', 'hidden'); }
-
-        function deployPortfolioDrawer(targetVendorId) {
-            targetingVendorInstanceId = targetVendorId;
-            const record = vendorDatabaseCollection.find(item => item.id === targetVendorId);
-            if(!record) return;
-
-            document.getElementById('drawerProviderName').innerText = record.name;
-            document.getElementById('drawerCategory').innerText = record.category;
-            document.getElementById('drawerLocation').innerText = record.location;
-            document.getElementById('drawerStars').innerText = record.stars.toFixed(1);
-            document.getElementById('drawerBadge').innerText = record.tier;
-            document.getElementById('drawerFooterPrice').innerText = record.rates;
-
-            const overlay = document.getElementById('portfolioDrawerOverlay');
-            const body = document.getElementById('portfolioDrawerBody');
-            overlay.classList.remove('pointer-events-none', 'opacity-0');
-            body.classList.remove('translate-x-full');
-        }
-
+        function closeAuthOverlay() { document.getElementById('authOverlaySystem').classList.replace('flex', 'hidden'); }
+        function terminateSession() { window.signOut(window.auth).then(() => { sessionUserRecord = null; synchronizeUserInterfaceState(); }); }
+        function resetApplicationState() { location.reload(); }
         function closePortfolioDrawer() {
             const overlay = document.getElementById('portfolioDrawerOverlay');
             const body = document.getElementById('portfolioDrawerBody');
-            overlay.classList.add('pointer-events-none', 'opacity-0');
-            body.classList.add('translate-x-full');
-        }
-
-        function resetApplicationState() {
-            document.getElementById('appKeywordSearchInput').value = '';
-            activeScopeCategoryFilter = null;
-            evaluateSearchCriteria();
+            if(overlay && body) {
+                overlay.classList.add('pointer-events-none', 'opacity-0');
+                body.classList.add('translate-x-full');
+            }
         }
     </script>
 </body>
