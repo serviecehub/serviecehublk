@@ -294,10 +294,11 @@
     </footer>
 
     <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-app.js";
-        import { getAnalytics } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-analytics.js";
-        import { getFirestore, collection, addDoc } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-firestore.js";
-        import { getAuth, createUserWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-auth.js";
+        // Using a completely stable production structural delivery tag
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+        import { getAnalytics } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-analytics.js";
+        import { getFirestore, collection, addDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+        import { getAuth, createUserWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyAoI3rf-cyZiCYgGDP4OEyvD2rAt1P9G04",
@@ -314,37 +315,31 @@
         const db = getFirestore(app);
         const auth = getAuth(app);
 
-        // Export to window for global access in existing functions
         window.db = db;
         window.auth = auth;
 
-        // Pipeline to automatically write registration records to Firebase Auth and Firestore
         window.registerUserToFirebase = async (userData, providerData) => {
             try {
-                // 1. Sync user data with Firebase Authentication system
                 const authCredential = await createUserWithEmailAndPassword(auth, userData.email, userData.password);
                 userData.firebaseUid = authCredential.user.uid;
 
-                // 2. Process Provider document inside Firestore if profile type is matched
                 if (providerData) {
                     providerData.firebaseUid = authCredential.user.uid;
                     const providerRef = await addDoc(collection(db, "providers"), providerData);
                     userData.associatedProviderFirestoreId = providerRef.id;
                 }
 
-                // 3. Map user accounts database record inside the primary global users collection
                 const userRef = await addDoc(collection(db, "users"), userData);
                 console.log("Successfully synced record data with Firestore ref ID:", userRef.id);
                 return { success: true };
             } catch (error) {
-                console.error("Firebase platform connection error:", error);
+                console.error("Firebase connection interface failure:", error);
                 throw error;
             }
         };
     </script>
 
     <script>
-        // System Runtime Controls
         let sessionUserRecord = null; 
         let activeScopeCategoryFilter = null;
         let selectedReviewFormScore = 5;
@@ -648,18 +643,21 @@
                     name: name,
                     role: role,
                     email: email,
-                    password: "user123", // Simplified for simulation
+                    password: "user123", 
                     associatedProviderId: assignedProviderId
                 };
 
-                // Forward structural telemetry payload targets straight to active Firebase Pipeline
-                try {
-                    if (typeof window.registerUserToFirebase === "function") {
+                // Critical: Removed silent fallback framework check to expose the raw error pipeline
+                if (typeof window.registerUserToFirebase === "function") {
+                    try {
                         await window.registerUserToFirebase(newIdentity, providerData);
+                    } catch (dbError) {
+                        alert("Firebase Sync Intercepted Error: " + dbError.message);
+                        return; // Halt local storage arrays if cloud integration drops out
                     }
-                } catch (dbError) {
-                    alert("Firebase Connection Error: " + dbError.message);
-                    return; // Retain current window modal state without breaking fallback structures
+                } else {
+                    alert("Error: Firebase registration script module failed to load. Check console logs.");
+                    return;
                 }
 
                 internalRegisteredUsers.push(newIdentity);
