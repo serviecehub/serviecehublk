@@ -328,7 +328,7 @@
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
         import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
-        import { getFirestore, doc, setDoc, getDoc, collection, addDoc, getDocs } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+        import { getFirestore, doc, setDoc, getDoc, collection, addDoc, getDocs, onSnapshot } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyAoI3rf-cyZiCYgGDP4OEyvD2rAt1P9G04",
@@ -401,6 +401,34 @@
                 console.error("Error fetching providers: ", error);
                 return [];
             }
+        };
+
+        window.saveContractToFirebase = async (contractData) => {
+            try {
+                await setDoc(doc(db, "contracts", contractData.contractId), contractData);
+                return { success: true };
+            } catch (error) {
+                console.error("Error saving contract: ", error);
+                throw error;
+            }
+        };
+
+        window.updateContractInFirebase = async (contractId, updatedFields) => {
+            try {
+                await setDoc(doc(db, "contracts", contractId), updatedFields, { merge: true });
+            } catch (error) {
+                console.error("Error updating contract: ", error);
+            }
+        };
+
+        window.listenToContractsFirebase = (callback) => {
+            return onSnapshot(collection(db, "contracts"), (querySnapshot) => {
+                const contracts = [];
+                querySnapshot.forEach((doc) => {
+                    contracts.push(doc.data());
+                });
+                callback(contracts);
+            });
         };
     </script>
 
@@ -478,6 +506,21 @@
                     if (!existingIds.includes(p.id)) {
                         vendorDatabaseCollection.push(p);
                     }
+                });
+            }
+
+            // Real-time contract listener sync system
+            if (typeof window.listenToContractsFirebase === "function") {
+                window.listenToContractsFirebase((firebaseContracts) => {
+                    firebaseContracts.forEach(fbContract => {
+                        const existingIdx = persistentContractsCollection.findIndex(c => c.contractId === fbContract.contractId);
+                        if (existingIdx > -1) {
+                            persistentContractsCollection[existingIdx] = fbContract;
+                        } else {
+                            persistentContractsCollection.push(fbContract);
+                        }
+                    });
+                    synchronizeUserInterfaceState();
                 });
             }
 
@@ -617,7 +660,7 @@
 
         /* --- ADDED/FIXED LOGIC --- */
         
-        function initiateServiceContract() {
+        async function initiateServiceContract() {
             if(!sessionUserRecord) {
                 alert("Please login to your customer account to hire a professional.");
                 openAuthOverlay('login');
@@ -653,7 +696,16 @@
                 createdAt: new Date().toISOString()
             };
 
-            persistentContractsCollection.push(newContract);
+            if (typeof window.saveContractToFirebase === "function") {
+                try {
+                    await window.saveContractToFirebase(newContract);
+                } catch (e) {
+                    console.error("Firebase structural error saving contract: ", e);
+                }
+            } else {
+                persistentContractsCollection.push(newContract);
+            }
+            
             alert(`Hire successful! ${vendor.name} has been notified. Contract Ref: ${generatedRefId}`);
             
             closePortfolioDrawer();
@@ -860,12 +912,15 @@
             lucide.createIcons();
         }
 
-        function advanceContractStateFromProviderPortal(targetContractId) {
+        async function advanceContractStateFromProviderPortal(targetContractId) {
             const targetContractRecord = persistentContractsCollection.find(c => c.contractId === targetContractId);
             if(!targetContractRecord) return;
 
             if(targetContractRecord.contractStep < 2) {
                 targetContractRecord.contractStep++;
+                if (typeof window.updateContractInFirebase === "function") {
+                    await window.updateContractInFirebase(targetContractId, { contractStep: targetContractRecord.contractStep });
+                }
                 synchronizeUserInterfaceState();
             }
         }
