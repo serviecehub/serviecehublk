@@ -148,6 +148,49 @@
                 </div>
             </section>
 
+            <section class="bg-white border border-slate-200 rounded-3xl p-6 shadow-sm space-y-6">
+                <div>
+                    <h2 class="text-lg font-black text-slate-900 mb-1">Service Packages Configurator</h2>
+                    <p class="text-xs text-slate-500">Define operational package tiers, accurate pricing matrix layouts, and targeted delivery metrics.</p>
+                </div>
+                <div class="grid md:grid-cols-3 gap-6">
+                    <div class="md:col-span-1 bg-slate-50 p-5 rounded-2xl border border-slate-200 space-y-3">
+                        <h3 id="packageFormTitle" class="text-xs font-bold uppercase tracking-wider text-slate-400 font-mono">Create New Package</h3>
+                        <input type="hidden" id="pkgFormId">
+                        <div>
+                            <label class="block text-[10px] font-black uppercase text-slate-500 mb-1">Package Name</label>
+                            <input type="text" id="pkgFormName" placeholder="e.g., Premium Wedding Package" class="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-xs outline-none focus:border-primary">
+                        </div>
+                        <div>
+                            <label class="block text-[10px] font-black uppercase text-slate-500 mb-1">Description</label>
+                            <textarea id="pkgFormDesc" rows="2" placeholder="Describe package scopes..." class="w-full bg-white border border-slate-200 rounded-xl p-2 text-xs outline-none focus:border-primary"></textarea>
+                        </div>
+                        <div class="grid grid-cols-2 gap-2">
+                            <div>
+                                <label class="block text-[10px] font-black uppercase text-slate-500 mb-1">Price (LKR)</label>
+                                <input type="number" id="pkgFormPrice" placeholder="50000" class="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-xs outline-none focus:border-primary">
+                            </div>
+                            <div>
+                                <label class="block text-[10px] font-black uppercase text-slate-500 mb-1">Est. Time</label>
+                                <input type="text" id="pkgFormDuration" placeholder="e.g., 5 Days" class="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-xs outline-none focus:border-primary">
+                            </div>
+                        </div>
+                        <div>
+                            <label class="block text-[10px] font-black uppercase text-slate-500 mb-1">Included Features (Comma Separated)</label>
+                            <input type="text" id="pkgFormFeatures" placeholder="High-Res, Drone Shots, 30 Prints" class="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-xs outline-none focus:border-primary">
+                        </div>
+                        <div class="flex gap-2 pt-2">
+                            <button onclick="commitServicePackage()" class="flex-1 bg-primary text-white text-xs font-bold py-2.5 rounded-xl hover:bg-blue-700 shadow-sm transition">Save Plan</button>
+                            <button onclick="clearPackageForm()" class="bg-slate-200 text-slate-600 text-xs font-bold px-3 py-2.5 rounded-xl hover:bg-slate-300 transition">Clear</button>
+                        </div>
+                    </div>
+                    <div class="md:col-span-2 space-y-3">
+                        <span class="block text-xs font-bold text-slate-400 uppercase tracking-widest font-mono">Configured Service Packages</span>
+                        <div id="providerPackagesDashboardGrid" class="grid sm:grid-cols-2 gap-4 max-h-[350px] overflow-y-auto custom-scrollbar pr-1"></div>
+                    </div>
+                </div>
+            </section>
+
             <section class="bg-white border border-slate-200 rounded-3xl overflow-hidden shadow-sm">
                 <div class="p-6 border-b border-slate-200 bg-slate-50/50 flex justify-between items-center">
                     <div>
@@ -200,6 +243,11 @@
                 </div>
 
                 <div>
+                    <h3 class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-3 font-mono">Select Service Package Tier</h3>
+                    <div id="drawerPackagesGridNode" class="grid sm:grid-cols-2 gap-3"></div>
+                </div>
+
+                <div>
                     <h3 class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-3 font-mono">Project Showcase</h3>
                     <div id="drawerPhotosGridNode" class="grid grid-cols-2 gap-3"></div>
                 </div>
@@ -239,12 +287,17 @@
                 </div>
             </div>
 
-            <div class="p-4 border-t border-slate-200 bg-slate-50 flex items-center justify-between">
+            <div class="p-4 border-t border-slate-200 bg-slate-50 flex items-center justify-between gap-3">
                 <div>
-                    <span class="block text-[10px] font-bold text-slate-400 font-mono uppercase">Service Base Rate</span>
-                    <span id="drawerFooterPrice" class="text-base font-black text-slate-800">LKR 00.00</span>
+                    <span class="block text-[10px] font-bold text-slate-400 font-mono uppercase">Calculated Pricing</span>
+                    <span id="drawerFooterPrice" class="text-base font-black text-slate-800">Select Package</span>
                 </div>
-                <button id="btnDrawerPrimaryAction" onclick="initiateServiceContract()" class="bg-primary text-white font-bold text-sm py-3 px-6 rounded-xl hover:bg-blue-700 transition">Hire This Professional</button>
+                <div class="flex gap-2 items-center">
+                    <button id="btnDrawerChatAction" onclick="initiateProviderChat()" class="bg-slate-200 hover:bg-slate-300 text-slate-800 font-bold text-xs sm:text-sm py-3 px-4 rounded-xl transition flex items-center gap-1.5">
+                        <i data-lucide="message-square" class="w-4 h-4 text-slate-600"></i> Chat Now
+                    </button>
+                    <button id="btnDrawerPrimaryAction" onclick="initiateServiceContract()" class="bg-primary text-white font-bold text-xs sm:text-sm py-3 px-6 rounded-xl hover:bg-blue-700 transition">Hire This Professional</button>
+                </div>
             </div>
         </div>
     </div>
@@ -327,8 +380,8 @@
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-        import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
-        import { getFirestore, doc, setDoc, getDoc, collection, addDoc, getDocs, onSnapshot } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+        import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+        import { getFirestore, doc, setDoc, getDoc, collection, addDoc, getDocs, onSnapshot } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyAoI3rf-cyZiCYgGDP4OEyvD2rAt1P9G04",
@@ -343,22 +396,6 @@
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
         const db = getFirestore(app);
-
-        // Track persistent authentication state
-        window.monitorAuthState = (callback) => {
-            onAuthStateChanged(auth, async (user) => {
-                if (user) {
-                    const userDoc = await getDoc(doc(db, "users", user.uid));
-                    if (userDoc.exists()) {
-                        callback(userDoc.data());
-                    } else {
-                        callback(null);
-                    }
-                } else {
-                    callback(null);
-                }
-            });
-        };
 
         window.registerUserToFirebase = async (userData, providerData, password) => {
             try {
@@ -417,15 +454,6 @@
             }
         };
 
-        // Allow customized profiles & tiers to be saved to Firebase
-        window.updateProviderInFirebase = async (providerId, updatedFields) => {
-            try {
-                await setDoc(doc(db, "providers", String(providerId)), updatedFields, { merge: true });
-            } catch (error) {
-                console.error("Error updating provider: ", error);
-            }
-        };
-
         window.saveContractToFirebase = async (contractData) => {
             try {
                 await setDoc(doc(db, "contracts", contractData.contractId), contractData);
@@ -456,12 +484,17 @@
     </script>
 
     <script>
+        // Updated mock data configuration to populate foundational tier scopes immediately
         let vendorDatabaseCollection = [
             {
                 id: 1, name: "Shanaka Perera", category: "Photography", location: "Colombo / Galle, LK", stars: 4.8, tier: "Premium", verified: true, rates: "LKR 45,000 Base",
                 description: "Specializing in aesthetic outdoor photography. Utilizing matte cinematic effects, soft highlights, and natural framing to capture timeless moments.",
                 keywords: ["photo", "wedding", "camera"],
                 photos: ["https://images.unsplash.com/photo-1519741497674-611481863552?auto=format&fit=crop&w=600&q=80"],
+                packages: [
+                    { id: "p1-1", name: "Standard Event Shoot", description: "Ideal for basic individual corporate coverages.", price: 45000, duration: "3 Days", features: ["50 Edited Images", "Digital Drive Transfer", "1 Operator"] },
+                    { id: "p1-2", name: "Premium Cinematic Wedding", description: "Full day extensive multi-camera framing orchestration setup.", price: 120000, duration: "7 Days", features: ["Drone Session Capture", "Premium Photo Album", "2 Operators", "Unlimited Revisions"] }
+                ],
                 reviews: [{ client: "Amila Jayasinghe", score: 5, date: "May 12, 2026", text: "Exceptional lighting work at our destination session in Galle.", attachedPhoto: "" }]
             },
             {
@@ -469,6 +502,9 @@
                 description: "Full-stack development agency bridging local business requirements with modern scalable web infrastructure.",
                 keywords: ["web", "developer", "website", "code"],
                 photos: ["https://images.unsplash.com/photo-1460925895917-afdab827c52f?auto=format&fit=crop&w=600&q=80"],
+                packages: [
+                    { id: "p2-1", name: "Corporate Landing Profile", description: "High-performance marketing optimization tracking engine design.", price: 80000, duration: "5 Days", features: ["100% Fluid Responsive Layout", "SEO Configurations Injected", "3 System Integration Links"] }
+                ],
                 reviews: []
             },
             {
@@ -476,6 +512,9 @@
                 description: "Emergency domestic plumbing repairs and maintenance operations.",
                 keywords: ["plumbing", "pipe", "leak", "fix"],
                 photos: ["https://images.unsplash.com/photo-1581244277943-fe4a9c777189?auto=format&fit=crop&w=600&q=80"],
+                packages: [
+                    { id: "p3-1", name: "Comprehensive Diagnostics & Fix", description: "Complete pressure evaluation and mechanical pipeline remediation.", price: 15000, duration: "1 Day", features: ["Full Leak Auditing", "Premium Replacement Components", "3 Month Maintenance Escrow Guarantee"] }
+                ],
                 reviews: []
             }
         ];
@@ -493,12 +532,14 @@
             { name: "Graphic Design", icon: "palette" }
         ];
 
+        // Runtime Global Tracks
         let sessionUserRecord = null; 
         let activeScopeCategoryFilter = null;
         let selectedReviewFormScore = 5;
         let targetingVendorInstanceId = null;
         let activeAuthTabState = "login";
         let providerChartInstance = null; 
+        let selectedPackageInstance = null;
 
         let persistentContractsCollection = [
             {
@@ -508,6 +549,7 @@
                 providerId: 2,
                 providerName: "Apex Labs Kandy",
                 basePriceValue: 80000,
+                packageName: "Corporate Landing Profile",
                 contractStep: 2, 
                 hasReviewed: false,
                 createdAt: new Date().toISOString() 
@@ -515,20 +557,12 @@
         ];
 
         window.addEventListener('DOMContentLoaded', async () => {
-            // Restore persistent session if refreshed
-            if (typeof window.monitorAuthState === "function") {
-                window.monitorAuthState((userRecord) => {
-                    sessionUserRecord = userRecord;
-                    synchronizeUserInterfaceState();
-                });
-            }
-
             if (typeof window.loadProvidersFromFirebase === "function") {
                 const fbProviders = await window.loadProvidersFromFirebase();
                 const existingIds = vendorDatabaseCollection.map(v => v.id);
-                
                 fbProviders.forEach(p => {
                     if (!existingIds.includes(p.id)) {
+                        if(!p.packages) p.packages = [];
                         vendorDatabaseCollection.push(p);
                     }
                 });
@@ -576,7 +610,6 @@
                 `;
                 containerNode.appendChild(blockElement);
             });
-            
             lucide.createIcons();
         }
 
@@ -615,7 +648,6 @@
                 cardNodeItem.className = `bg-white border border-slate-200 rounded-3xl p-5 shadow-sm flex flex-col justify-between h-full hover:shadow-md transition ${isPremium ? 'glass-premium border-amber-400 relative overflow-hidden' : ''}`;
                 
                 let premiumBanner = isPremium ? `<div class="absolute top-0 right-0 bg-amber-500 text-white font-black text-[9px] uppercase px-3 py-1 rounded-bl-xl tracking-wider flex items-center gap-1"><i data-lucide="zap" class="w-2.5 h-2.5 fill-white"></i> Premium</div>` : '';
-
                 const safeIdString = typeof vendor.id === 'string' ? `'${vendor.id}'` : vendor.id;
 
                 cardNodeItem.innerHTML = `
@@ -674,10 +706,150 @@
 
                 renderProviderAppointmentsLedger(sessionUserRecord.associatedProviderId);
                 mountProviderCustomizerData(sessionUserRecord.associatedProviderId);
+                renderProviderPackagesDashboard(sessionUserRecord.associatedProviderId);
                 initializePnLChart();
             }
         }
 
+        // REAL-TIME INTEGRATED CHAT OPERATIONAL GATEWAY
+        function initiateProviderChat() {
+            if(!sessionUserRecord) {
+                alert("Please authenticate access parameters by signing in to trigger direct client communications.");
+                openAuthOverlay('login');
+                return;
+            }
+            if(!targetingVendorInstanceId) return;
+            
+            // Redirect smoothly to the chat template carrying operational identification tokens
+            window.location.href = `chat.html?providerId=${encodeURIComponent(targetingVendorInstanceId)}&customerId=${encodeURIComponent(sessionUserRecord.id)}`;
+        }
+
+        // CUSTOM PACKAGE CRUD MANAGER (PROVIDER DASHBOARD VIEWPORT)
+        function renderProviderPackagesDashboard(providerId) {
+            const gridNode = document.getElementById('providerPackagesDashboardGrid');
+            const vendor = vendorDatabaseCollection.find(v => v.id === providerId);
+            if(!vendor) return;
+            if(!vendor.packages) vendor.packages = [];
+
+            if(vendor.packages.length === 0) {
+                gridNode.innerHTML = `<div class="col-span-2 p-8 border border-dashed border-slate-200 rounded-2xl text-center text-xs text-slate-400 italic">No packages configured yet. Use the sidebar controller to provision tiers.</div>`;
+                return;
+            }
+
+            gridNode.innerHTML = vendor.packages.map(pkg => `
+                <div class="bg-slate-50 border border-slate-200 rounded-2xl p-4 flex flex-col justify-between shadow-sm border-l-4 border-l-primary">
+                    <div>
+                        <div class="flex justify-between items-start gap-2 mb-1">
+                            <h4 class="font-black text-xs sm:text-sm text-slate-800 truncate max-w-[140px]">${pkg.name}</h4>
+                            <span class="text-xs font-mono font-black text-primary">LKR ${pkg.price.toLocaleString()}</span>
+                        </div>
+                        <p class="text-[11px] text-slate-500 line-clamp-2 mb-2">${pkg.description || 'No description added.'}</p>
+                    </div>
+                    <div class="flex items-center justify-between border-t border-slate-200 pt-2 mt-2 text-[10px]">
+                        <span class="text-slate-400 font-bold font-mono flex items-center gap-1"><i data-lucide="clock" class="w-3 h-3"></i> ${pkg.duration}</span>
+                        <div class="flex gap-2">
+                            <button onclick="loadPackageToForm('${pkg.id}')" class="text-primary hover:underline font-bold">Edit</button>
+                            <button onclick="deleteServicePackage('${pkg.id}')" class="text-red-500 hover:underline font-bold">Delete</button>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+            lucide.createIcons();
+        }
+
+        function loadPackageToForm(pkgId) {
+            if(!sessionUserRecord) return;
+            const vendor = vendorDatabaseCollection.find(v => v.id === sessionUserRecord.associatedProviderId);
+            if(!vendor || !vendor.packages) return;
+            const pkg = vendor.packages.find(p => p.id == pkgId);
+            if(!pkg) return;
+
+            document.getElementById('pkgFormId').value = pkg.id;
+            document.getElementById('pkgFormName').value = pkg.name;
+            document.getElementById('pkgFormDesc').value = pkg.description;
+            document.getElementById('pkgFormPrice').value = pkg.price;
+            document.getElementById('pkgFormDuration').value = pkg.duration;
+            document.getElementById('pkgFormFeatures').value = pkg.features ? pkg.features.join(', ') : '';
+            document.getElementById('packageFormTitle').innerText = "Update Selected Package";
+        }
+
+        function clearPackageForm() {
+            document.getElementById('pkgFormId').value = '';
+            document.getElementById('pkgFormName').value = '';
+            document.getElementById('pkgFormDesc').value = '';
+            document.getElementById('pkgFormPrice').value = '';
+            document.getElementById('pkgFormDuration').value = '';
+            document.getElementById('pkgFormFeatures').value = '';
+            document.getElementById('packageFormTitle').innerText = "Create New Package";
+        }
+
+        function commitServicePackage() {
+            if(!sessionUserRecord || sessionUserRecord.role !== 'Provider') return;
+            const pId = sessionUserRecord.associatedProviderId;
+            const vendor = vendorDatabaseCollection.find(v => v.id === pId);
+            if(!vendor) return;
+            if(!vendor.packages) vendor.packages = [];
+
+            const formId = document.getElementById('pkgFormId').value;
+            const name = document.getElementById('pkgFormName').value.trim();
+            const desc = document.getElementById('pkgFormDesc').value.trim();
+            const price = parseInt(document.getElementById('pkgFormPrice').value) || 0;
+            const duration = document.getElementById('pkgFormDuration').value.trim();
+            const featuresRaw = document.getElementById('pkgFormFeatures').value;
+            const features = featuresRaw ? featuresRaw.split(',').map(f => f.trim()).filter(Boolean) : [];
+
+            if(!name || !price || !duration) {
+                alert("Core processing requirements missed: Provide Name, Valid Pricing, and Completion Timelines.");
+                return;
+            }
+
+            if(formId) {
+                const pkgIndex = vendor.packages.findIndex(p => p.id == formId);
+                if(pkgIndex > -1) {
+                    vendor.packages[pkgIndex] = { id: formId, name, description: desc, price, duration, features };
+                    alert("Service tier alterations synchronized successfully.");
+                }
+            } else {
+                const newId = "pkg-" + Date.now();
+                vendor.packages.push({ id: newId, name, description: desc, price, duration, features });
+                alert("New tier service architecture mounted smoothly.");
+            }
+
+            clearPackageForm();
+            renderProviderPackagesDashboard(pId);
+        }
+
+        function deleteServicePackage(pkgId) {
+            if(!confirm("Are you sure you want to completely remove this functional package selection tier?")) return;
+            if(!sessionUserRecord) return;
+            const pId = sessionUserRecord.associatedProviderId;
+            const vendor = vendorDatabaseCollection.find(v => v.id === pId);
+            if(!vendor || !vendor.packages) return;
+
+            vendor.packages = vendor.packages.filter(p => p.id != pkgId);
+            alert("Package profile configuration discarded.");
+            renderProviderPackagesDashboard(pId);
+        }
+
+        function selectPackageForHire(vendorId, pkgId) {
+            const vendor = vendorDatabaseCollection.find(v => v.id == vendorId);
+            if(!vendor || !vendor.packages) return;
+            const pkg = vendor.packages.find(p => p.id == pkgId);
+            if(!pkg) return;
+
+            selectedPackageInstance = pkg;
+
+            vendor.packages.forEach(p => {
+                const el = document.getElementById(`drawer-pkg-card-${p.id}`);
+                if(el) el.classList.remove('border-primary', 'bg-blue-50/20', 'ring-2', 'ring-primary');
+            });
+            
+            const selectedElement = document.getElementById(`drawer-pkg-card-${pkgId}`);
+            if(selectedElement) selectedElement.classList.add('border-primary', 'bg-blue-50/20', 'ring-2', 'ring-primary');
+
+            document.getElementById('drawerFooterPrice').innerText = `LKR ${pkg.price.toLocaleString()}`;
+        }
+        
         async function initiateServiceContract() {
             if(!sessionUserRecord) {
                 alert("Please login to your customer account to hire a professional.");
@@ -693,10 +865,18 @@
             const vendor = vendorDatabaseCollection.find(v => v.id === targetingVendorInstanceId);
             if(!vendor) return;
 
-            let parsedBasePrice = 10000; 
-            const stringMatch = vendor.rates.match(/\d+(?:,\d+)?/);
-            if(stringMatch) {
-                parsedBasePrice = parseInt(stringMatch[0].replace(/,/g, ''));
+            // Enforcement of strict structural package configuration check rules
+            if (!selectedPackageInstance && vendor.packages && vendor.packages.length > 0) {
+                alert("Please isolate and select a specific service package compilation before establishing escrow commitments.");
+                return;
+            }
+
+            let parsedBasePrice = selectedPackageInstance ? selectedPackageInstance.price : 10000;
+            if(!selectedPackageInstance) {
+                const stringMatch = vendor.rates.match(/\d+(?:,\d+)?/);
+                if(stringMatch) {
+                    parsedBasePrice = parseInt(stringMatch[0].replace(/,/g, ''));
+                }
             }
 
             const generatedRefId = "SH-" + Math.floor(1000 + Math.random() * 9000);
@@ -708,6 +888,7 @@
                 providerId: vendor.id,
                 providerName: vendor.name,
                 basePriceValue: parsedBasePrice,
+                packageName: selectedPackageInstance ? selectedPackageInstance.name : "Custom Request Base",
                 contractStep: 0,
                 hasReviewed: false,
                 createdAt: new Date().toISOString()
@@ -741,14 +922,11 @@
             renderCustomizerImageGallery(vendor.photos);
         }
 
-        async function saveProviderDescription() {
+        function saveProviderDescription() {
             if(!sessionUserRecord) return;
             const vendor = vendorDatabaseCollection.find(v => v.id === sessionUserRecord.associatedProviderId);
             if(vendor) {
                 vendor.description = document.getElementById('providerDescInput').value;
-                if (typeof window.updateProviderInFirebase === "function") {
-                    await window.updateProviderInFirebase(vendor.id, { description: vendor.description });
-                }
                 alert("Profile description updated successfully!");
             }
         }
@@ -770,7 +948,7 @@
             lucide.createIcons();
         }
 
-        async function addProviderImage() {
+        function addProviderImage() {
             if(!sessionUserRecord) return;
             const inputNode = document.getElementById('newImageUrlInput');
             const newUrl = inputNode.value.trim();
@@ -781,21 +959,15 @@
                 if(!vendor.photos) vendor.photos = [];
                 vendor.photos.push(newUrl);
                 inputNode.value = "";
-                if (typeof window.updateProviderInFirebase === "function") {
-                    await window.updateProviderInFirebase(vendor.id, { photos: vendor.photos });
-                }
                 renderCustomizerImageGallery(vendor.photos);
             }
         }
 
-        async function removeProviderImage(index) {
+        function removeProviderImage(index) {
             if(!sessionUserRecord) return;
             const vendor = vendorDatabaseCollection.find(v => v.id === sessionUserRecord.associatedProviderId);
             if(vendor && vendor.photos) {
                 vendor.photos.splice(index, 1);
-                if (typeof window.updateProviderInFirebase === "function") {
-                    await window.updateProviderInFirebase(vendor.id, { photos: vendor.photos });
-                }
                 renderCustomizerImageGallery(vendor.photos);
             }
         }
@@ -915,13 +1087,14 @@
                 const jobGross = job.basePriceValue;
                 const jobFee = jobGross * 0.05;
                 const jobNet = jobGross - jobFee;
+                const tierLabel = job.packageName ? `<span class="ml-1 text-slate-400 font-mono text-[11px] font-normal">[Tier: ${job.packageName}]</span>` : '';
 
                 return `
                     <div class="p-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white hover:bg-slate-50/50 transition">
                         <div class="space-y-1.5">
                             <div class="flex items-center gap-2">
                                 <span class="text-xs font-bold text-slate-400 font-mono bg-slate-100 px-1.5 py-0.5 rounded">Client:</span>
-                                <h4 class="text-sm font-black text-slate-900">${job.customerName}</h4>
+                                <h4 class="text-sm font-black text-slate-900">${job.customerName} ${tierLabel}</h4>
                                 ${statusBadgeHtml}
                             </div>
                             <p class="text-xs text-slate-500">Order Ref: <span class="font-mono text-slate-700 font-semibold">${job.contractId}</span> | Gross: <span class="font-bold">LKR ${jobGross.toLocaleString()}</span> | Fee (5%): <span class="text-amber-600 font-bold">-LKR ${jobFee.toLocaleString()}</span> | Net Remit: <span class="text-emerald-600 font-bold">LKR ${jobNet.toLocaleString()}</span></p>
@@ -946,22 +1119,14 @@
             }
         }
 
-        async function triggerProviderUpgrade() {
+        function triggerProviderUpgrade() {
             if(!sessionUserRecord || sessionUserRecord.role !== "Provider") return;
             const vendorObj = vendorDatabaseCollection.find(v => v.id === sessionUserRecord.associatedProviderId);
             if(vendorObj) {
-                const confirmed = confirm("Upgrade to Premium requires a one-time payment of 2000 LKR. Do you want to proceed?");
-                if (confirmed) {
-                    vendorObj.tier = "Premium";
-                    if (typeof window.updateProviderInFirebase === "function") {
-                        await window.updateProviderInFirebase(vendorObj.id, { tier: "Premium" });
-                    }
-                    alert(`Payment successful! ${vendorObj.name} has been upgraded to Premium Tier status.`);
-                    synchronizeUserInterfaceState();
-                    evaluateSearchCriteria();
-                } else {
-                    alert("Upgrade transaction was cancelled.");
-                }
+                vendorObj.tier = "Premium";
+                alert(`${vendorObj.name} has been upgraded to Premium Tier status.`);
+                synchronizeUserInterfaceState();
+                evaluateSearchCriteria();
             }
         }
 
@@ -1086,6 +1251,7 @@
                             description: "Welcome to my newly minted provider profile. I am ready to offer quality services in my domain.",
                             keywords: ["expert", "new"],
                             photos: [],
+                            packages: [],
                             reviews: []
                         };
                     }
@@ -1143,9 +1309,13 @@
                 container.innerHTML = `<p class="text-xs text-slate-400 py-6 text-center italic">No active operations.</p>`;
             } else {
                 container.innerHTML = matchingCustomerContracts.map(job => `
-                    <div class="py-4 space-y-3">
-                        <h4 class="text-sm font-black">${job.providerName}</h4>
-                        <div class="text-[10px] font-mono bg-slate-100 p-2 rounded">Status: ${job.contractStep === 2 ? 'COMPLETED' : 'PENDING'}</div>
+                    <div class="py-4 space-y-2">
+                        <div class="flex justify-between items-center">
+                            <h4 class="text-sm font-black">${job.providerName}</h4>
+                            <span class="text-xs font-mono font-bold text-primary">LKR ${job.basePriceValue.toLocaleString()}</span>
+                        </div>
+                        <div class="text-[11px] text-slate-500 font-medium">Selected Tier Strategy: <span class="text-slate-800 font-bold font-mono">${job.packageName || 'Base Rate Variant'}</span></div>
+                        <div class="text-[10px] font-mono bg-slate-100 p-2 rounded">Status Pipeline Node: ${job.contractStep === 2 ? 'COMPLETED' : 'PENDING ACTION'}</div>
                     </div>
                 `).join('');
             }
@@ -1156,6 +1326,8 @@
 
         function deployPortfolioDrawer(targetVendorId) {
             targetingVendorInstanceId = targetVendorId;
+            selectedPackageInstance = null; 
+            
             const record = vendorDatabaseCollection.find(item => item.id === targetVendorId);
             if(!record) return;
 
@@ -1165,7 +1337,31 @@
             document.getElementById('drawerDescription').innerText = record.description || "No description provided.";
             document.getElementById('drawerStars').innerText = record.stars.toFixed(1);
             document.getElementById('drawerBadge').innerText = record.tier;
-            document.getElementById('drawerFooterPrice').innerText = record.rates;
+            document.getElementById('drawerFooterPrice').innerText = "Select Package";
+
+            // INJECTED CLIENT RE-RENDERING ENGINE FOR DEPLOYED OVERLAYS
+            const packagesGrid = document.getElementById('drawerPackagesGridNode');
+            if (record.packages && record.packages.length > 0) {
+                packagesGrid.innerHTML = record.packages.map(pkg => `
+                    <div id="drawer-pkg-card-${pkg.id}" onclick="selectPackageForHire(${record.id}, '${pkg.id}')" class="bg-white border border-slate-200 rounded-2xl p-4 cursor-pointer hover:border-primary transition shadow-sm flex flex-col justify-between group">
+                        <div>
+                            <div class="flex justify-between items-start gap-2 mb-1.5">
+                                <h4 class="font-black text-xs text-slate-900 group-hover:text-primary transition">${pkg.name}</h4>
+                                <span class="text-xs font-mono font-black text-slate-700">LKR ${pkg.price.toLocaleString()}</span>
+                            </div>
+                            <p class="text-[11px] text-slate-500 leading-normal mb-3">${pkg.description || 'Standard service parameters.'}</p>
+                            <div class="flex flex-wrap gap-1 mb-2">
+                                ${pkg.features ? pkg.features.map(f => `<span class="bg-slate-100 text-[9px] px-1.5 py-0.5 rounded text-slate-600 font-medium">${f}</span>`).join('') : ''}
+                            </div>
+                        </div>
+                        <div class="text-[10px] text-slate-400 font-bold flex items-center gap-1 mt-1 border-t border-slate-100 pt-2">
+                            <i data-lucide="clock" class="w-3 h-3"></i> Timeline: ${pkg.duration}
+                        </div>
+                    </div>
+                `).join('');
+            } else {
+                packagesGrid.innerHTML = `<p class="text-xs text-slate-400 italic col-span-2">No custom tiers provisioned by this expert profile yet.</p>`;
+            }
 
             const photosGrid = document.getElementById('drawerPhotosGridNode');
             if (record.photos && record.photos.length > 0) {
@@ -1178,6 +1374,7 @@
             const body = document.getElementById('portfolioDrawerBody');
             overlay.classList.remove('pointer-events-none', 'opacity-0');
             body.classList.remove('translate-x-full');
+            lucide.createIcons();
         }
 
         function closePortfolioDrawer() {
