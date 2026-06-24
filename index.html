@@ -327,7 +327,7 @@
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-        import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+        import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
         import { getFirestore, doc, setDoc, getDoc, collection, addDoc, getDocs, onSnapshot } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
         const firebaseConfig = {
@@ -344,6 +344,22 @@
         const auth = getAuth(app);
         const db = getFirestore(app);
 
+        // Track persistent authentication state
+        window.monitorAuthState = (callback) => {
+            onAuthStateChanged(auth, async (user) => {
+                if (user) {
+                    const userDoc = await getDoc(doc(db, "users", user.uid));
+                    if (userDoc.exists()) {
+                        callback(userDoc.data());
+                    } else {
+                        callback(null);
+                    }
+                } else {
+                    callback(null);
+                }
+            });
+        };
+
         window.registerUserToFirebase = async (userData, providerData, password) => {
             try {
                 const authCredential = await createUserWithEmailAndPassword(auth, userData.email, password);
@@ -352,15 +368,13 @@
 
                 if (providerData) {
                     providerData.firebaseUid = authCredential.user.uid;
-                    delete providerData.id; // Remove temp integer ID so Firebase generates one
+                    delete providerData.id; 
                     
                     const providerRef = await addDoc(collection(db, "providers"), providerData);
                     
-                    // Assign true Firebase String ID to match later queries
                     providerData.id = providerRef.id;
                     userData.associatedProviderId = providerRef.id;
                     
-                    // Re-save provider doc with string ID to ensure perfect match on pull
                     await setDoc(doc(db, "providers", providerRef.id), providerData);
                 }
 
@@ -403,6 +417,15 @@
             }
         };
 
+        // Allow customized profiles & tiers to be saved to Firebase
+        window.updateProviderInFirebase = async (providerId, updatedFields) => {
+            try {
+                await setDoc(doc(db, "providers", String(providerId)), updatedFields, { merge: true });
+            } catch (error) {
+                console.error("Error updating provider: ", error);
+            }
+        };
+
         window.saveContractToFirebase = async (contractData) => {
             try {
                 await setDoc(doc(db, "contracts", contractData.contractId), contractData);
@@ -433,7 +456,6 @@
     </script>
 
     <script>
-        // Relational Simulation Datastore (Updated with Description field)
         let vendorDatabaseCollection = [
             {
                 id: 1, name: "Shanaka Perera", category: "Photography", location: "Colombo / Galle, LK", stars: 4.8, tier: "Premium", verified: true, rates: "LKR 45,000 Base",
@@ -464,7 +486,6 @@
             { id: "USR-03", name: "Shanaka Perera", role: "Provider", email: "shanaka@photo.lk", password: "123", associatedProviderId: 1 }
         ];
 
-        // This manifest is now purely used as an icon dictionary lookup 
         const applicationCategoryManifest = [
             { name: "Photography", icon: "camera" },
             { name: "Web Development", icon: "code" },
@@ -472,7 +493,6 @@
             { name: "Graphic Design", icon: "palette" }
         ];
 
-        // System Runtime Controls
         let sessionUserRecord = null; 
         let activeScopeCategoryFilter = null;
         let selectedReviewFormScore = 5;
@@ -480,7 +500,6 @@
         let activeAuthTabState = "login";
         let providerChartInstance = null; 
 
-        // Added createdAt for realistic PnL calculations based on current date
         let persistentContractsCollection = [
             {
                 contractId: "SH-9081",
@@ -496,12 +515,18 @@
         ];
 
         window.addEventListener('DOMContentLoaded', async () => {
-            // Load Providers strictly from Firebase to populate real data
+            // Restore persistent session if refreshed
+            if (typeof window.monitorAuthState === "function") {
+                window.monitorAuthState((userRecord) => {
+                    sessionUserRecord = userRecord;
+                    synchronizeUserInterfaceState();
+                });
+            }
+
             if (typeof window.loadProvidersFromFirebase === "function") {
                 const fbProviders = await window.loadProvidersFromFirebase();
                 const existingIds = vendorDatabaseCollection.map(v => v.id);
                 
-                // Append Firebase providers into UI array to render alongside hardcoded ones
                 fbProviders.forEach(p => {
                     if (!existingIds.includes(p.id)) {
                         vendorDatabaseCollection.push(p);
@@ -509,7 +534,6 @@
                 });
             }
 
-            // Real-time contract listener sync system
             if (typeof window.listenToContractsFirebase === "function") {
                 window.listenToContractsFirebase((firebaseContracts) => {
                     firebaseContracts.forEach(fbContract => {
@@ -534,11 +558,9 @@
             const containerNode = document.getElementById('categoriesGridNode');
             containerNode.innerHTML = '';
             
-            // Extract unique, real categories dynamically from actual providers
             const uniqueCategories = [...new Set(vendorDatabaseCollection.map(v => v.category))];
 
             uniqueCategories.forEach(catName => {
-                // Find icon from manifest, fallback to briefcase if it's a completely new category entered by a user
                 const manifestItem = applicationCategoryManifest.find(m => m.name.toLowerCase() === catName.toLowerCase());
                 const iconToUse = manifestItem ? manifestItem.icon : "briefcase";
 
@@ -555,7 +577,6 @@
                 containerNode.appendChild(blockElement);
             });
             
-            // Re-render icons for dynamic additions
             lucide.createIcons();
         }
 
@@ -595,7 +616,6 @@
                 
                 let premiumBanner = isPremium ? `<div class="absolute top-0 right-0 bg-amber-500 text-white font-black text-[9px] uppercase px-3 py-1 rounded-bl-xl tracking-wider flex items-center gap-1"><i data-lucide="zap" class="w-2.5 h-2.5 fill-white"></i> Premium</div>` : '';
 
-                // Pass string IDs safely for DOM strings
                 const safeIdString = typeof vendor.id === 'string' ? `'${vendor.id}'` : vendor.id;
 
                 cardNodeItem.innerHTML = `
@@ -658,8 +678,6 @@
             }
         }
 
-        /* --- ADDED/FIXED LOGIC --- */
-        
         async function initiateServiceContract() {
             if(!sessionUserRecord) {
                 alert("Please login to your customer account to hire a professional.");
@@ -675,7 +693,6 @@
             const vendor = vendorDatabaseCollection.find(v => v.id === targetingVendorInstanceId);
             if(!vendor) return;
 
-            // Extract numeric base price from string (fallback to 10000)
             let parsedBasePrice = 10000; 
             const stringMatch = vendor.rates.match(/\d+(?:,\d+)?/);
             if(stringMatch) {
@@ -713,7 +730,6 @@
         }
 
         function commitReviewToDatabase() {
-            // Added review function so clicking button doesn't error out
             alert("Review saved to blockchain! Pending moderation checks.");
             document.getElementById('txtReviewCommentInput').value = "";
         }
@@ -725,11 +741,14 @@
             renderCustomizerImageGallery(vendor.photos);
         }
 
-        function saveProviderDescription() {
+        async function saveProviderDescription() {
             if(!sessionUserRecord) return;
             const vendor = vendorDatabaseCollection.find(v => v.id === sessionUserRecord.associatedProviderId);
             if(vendor) {
                 vendor.description = document.getElementById('providerDescInput').value;
+                if (typeof window.updateProviderInFirebase === "function") {
+                    await window.updateProviderInFirebase(vendor.id, { description: vendor.description });
+                }
                 alert("Profile description updated successfully!");
             }
         }
@@ -751,7 +770,7 @@
             lucide.createIcons();
         }
 
-        function addProviderImage() {
+        async function addProviderImage() {
             if(!sessionUserRecord) return;
             const inputNode = document.getElementById('newImageUrlInput');
             const newUrl = inputNode.value.trim();
@@ -762,15 +781,21 @@
                 if(!vendor.photos) vendor.photos = [];
                 vendor.photos.push(newUrl);
                 inputNode.value = "";
+                if (typeof window.updateProviderInFirebase === "function") {
+                    await window.updateProviderInFirebase(vendor.id, { photos: vendor.photos });
+                }
                 renderCustomizerImageGallery(vendor.photos);
             }
         }
 
-        function removeProviderImage(index) {
+        async function removeProviderImage(index) {
             if(!sessionUserRecord) return;
             const vendor = vendorDatabaseCollection.find(v => v.id === sessionUserRecord.associatedProviderId);
             if(vendor && vendor.photos) {
                 vendor.photos.splice(index, 1);
+                if (typeof window.updateProviderInFirebase === "function") {
+                    await window.updateProviderInFirebase(vendor.id, { photos: vendor.photos });
+                }
                 renderCustomizerImageGallery(vendor.photos);
             }
         }
@@ -786,14 +811,12 @@
             const providerId = sessionUserRecord.associatedProviderId;
             const myContracts = persistentContractsCollection.filter(c => c.providerId === providerId);
 
-            // Generate last 6 months dynamic labels
             const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
             const dynamicLabels = [];
             const earningsMap = {};
             
             const todayDate = new Date();
             
-            // Setup buckets for last 6 months
             for(let i = 5; i >= 0; i--) {
                 const targetDate = new Date(todayDate.getFullYear(), todayDate.getMonth() - i, 1);
                 const stringKey = `${targetDate.getFullYear()}-${targetDate.getMonth()}`;
@@ -801,7 +824,6 @@
                 earningsMap[stringKey] = 0;
             }
 
-            // Populate real data (Subtract 5% fee)
             myContracts.forEach(contract => {
                 const d = contract.createdAt ? new Date(contract.createdAt) : new Date();
                 const stringKey = `${d.getFullYear()}-${d.getMonth()}`;
@@ -849,7 +871,6 @@
                 }
             });
         }
-        /* --- END ADDED/FIXED LOGIC --- */
 
         function renderProviderAppointmentsLedger(providerIdContext) {
             const listNode = document.getElementById('providerAppointmentsListNode');
@@ -925,14 +946,22 @@
             }
         }
 
-        function triggerProviderUpgrade() {
+        async function triggerProviderUpgrade() {
             if(!sessionUserRecord || sessionUserRecord.role !== "Provider") return;
             const vendorObj = vendorDatabaseCollection.find(v => v.id === sessionUserRecord.associatedProviderId);
             if(vendorObj) {
-                vendorObj.tier = "Premium";
-                alert(`${vendorObj.name} has been upgraded to Premium Tier status.`);
-                synchronizeUserInterfaceState();
-                evaluateSearchCriteria();
+                const confirmed = confirm("Upgrade to Premium requires a one-time payment of 2000 LKR. Do you want to proceed?");
+                if (confirmed) {
+                    vendorObj.tier = "Premium";
+                    if (typeof window.updateProviderInFirebase === "function") {
+                        await window.updateProviderInFirebase(vendorObj.id, { tier: "Premium" });
+                    }
+                    alert(`Payment successful! ${vendorObj.name} has been upgraded to Premium Tier status.`);
+                    synchronizeUserInterfaceState();
+                    evaluateSearchCriteria();
+                } else {
+                    alert("Upgrade transaction was cancelled.");
+                }
             }
         }
 
@@ -1014,7 +1043,6 @@
                             closeAuthOverlay();
                         }
                     } else {
-                        // Fallback purely for dev environment
                         const user = internalRegisteredUsers.find(u => u.email === email && u.password === pass);
                         if(user) {
                             sessionUserRecord = user;
@@ -1080,7 +1108,6 @@
 
                             alert(`Account created successfully for ${name}. You have been automatically logged in!`);
                             
-                            // Re-render sectors and providers immediately showing the new real category
                             generateCategoryGridInterface();
                             synchronizeUserInterfaceState();
                             evaluateSearchCriteria(); 
@@ -1140,7 +1167,6 @@
             document.getElementById('drawerBadge').innerText = record.tier;
             document.getElementById('drawerFooterPrice').innerText = record.rates;
 
-            // Render Photos in Drawer
             const photosGrid = document.getElementById('drawerPhotosGridNode');
             if (record.photos && record.photos.length > 0) {
                 photosGrid.innerHTML = record.photos.map(url => `<img src="${url}" class="w-full h-32 object-cover rounded-xl shadow-sm">`).join('');
