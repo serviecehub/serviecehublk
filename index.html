@@ -247,6 +247,10 @@
                         <input type="email" id="authFormEmail" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm outline-none focus:border-primary">
                     </div>
                     <div>
+                        <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1 font-mono">Account Password</label>
+                        <input type="password" id="authFormPassword" placeholder="••••••••" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm outline-none focus:border-primary">
+                    </div>
+                    <div>
                         <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1 font-mono">Phone Number</label>
                         <input type="tel" id="authFormPhone" placeholder="07xxxxxxxx" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm outline-none focus:border-primary">
                     </div>
@@ -296,8 +300,8 @@
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-app.js";
         import { getAnalytics } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-analytics.js";
-        import { getFirestore, collection, addDoc } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-firestore.js";
-        import { getAuth, createUserWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-auth.js";
+        import { getFirestore, collection, addDoc, query, where, getDocs } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-firestore.js";
+        import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-auth.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyAoI3rf-cyZiCYgGDP4OEyvD2rAt1P9G04",
@@ -333,6 +337,24 @@
                 return { success: true };
             } catch (error) {
                 console.error("Firebase connection interface failure:", error);
+                throw error;
+            }
+        };
+
+        window.loginUserWithFirebase = async (email, password) => {
+            try {
+                const authCredential = await signInWithEmailAndPassword(auth, email, password);
+                const uid = authCredential.user.uid;
+                
+                const q = query(collection(db, "users"), where("firebaseUid", "==", uid));
+                const querySnapshot = await getDocs(q);
+                
+                if (!querySnapshot.empty) {
+                    return { success: true, userData: querySnapshot.docs[0].data() };
+                }
+                return { success: true, userData: null };
+            } catch (error) {
+                console.error("Firebase Auth login failure:", error);
                 throw error;
             }
         };
@@ -571,11 +593,11 @@
                 registerFields.classList.add('hidden');
                 submitBtn.innerText = "Authorize Access Session";
                 
-                // Toggle required states dynamically to avoid native browser submission blocking
                 document.getElementById('loginEmail').required = true;
                 document.getElementById('loginPassword').required = true;
                 document.getElementById('authFormName').required = false;
                 document.getElementById('authFormEmail').required = false;
+                document.getElementById('authFormPassword').required = false;
                 document.getElementById('authFormPhone').required = false;
             } else {
                 registerTab.className = "flex-1 pb-3 text-center text-sm font-bold border-b-2 text-primary border-primary";
@@ -585,11 +607,11 @@
                 submitBtn.innerText = "Create & Mount Account Profile";
                 toggleRegistrationFields();
                 
-                // Toggle required states dynamically to avoid native browser submission blocking
                 document.getElementById('loginEmail').required = false;
                 document.getElementById('loginPassword').required = false;
                 document.getElementById('authFormName').required = true;
                 document.getElementById('authFormEmail').required = true;
+                document.getElementById('authFormPassword').required = true;
                 document.getElementById('authFormPhone').required = true;
             }
         }
@@ -609,8 +631,24 @@
             if(activeAuthTabState === 'login') {
                 const email = document.getElementById('loginEmail').value.trim();
                 const pass = document.getElementById('loginPassword').value.trim();
-                const user = internalRegisteredUsers.find(u => u.email === email && u.password === pass);
                 
+                if (typeof window.loginUserWithFirebase === "function") {
+                    try {
+                        const loginResult = await window.loginUserWithFirebase(email, pass);
+                        if (loginResult.success && loginResult.userData) {
+                            sessionUserRecord = loginResult.userData;
+                            alert(`Welcome back, ${sessionUserRecord.name}!`);
+                            synchronizeUserInterfaceState();
+                            closeAuthOverlay();
+                            return;
+                        }
+                    } catch (dbError) {
+                        alert("Login Error: " + dbError.message);
+                        return;
+                    }
+                }
+
+                const user = internalRegisteredUsers.find(u => u.email === email && u.password === pass);
                 if(user) {
                     sessionUserRecord = user;
                     alert(`Welcome back, ${user.name}!`);
@@ -621,11 +659,12 @@
             } else {
                 const name = document.getElementById('authFormName').value.trim();
                 const email = document.getElementById('authFormEmail').value.trim();
+                const password = document.getElementById('authFormPassword').value.trim();
                 const phone = document.getElementById('authFormPhone').value.trim();
                 const role = document.getElementById('authFormRole').value;
                 
-                if(!name || !email || !phone) {
-                    alert("Please fill in required fields (Name, Email, Phone).");
+                if(!name || !email || !password || !phone) {
+                    alert("Please fill in required fields (Name, Email, Password, Phone).");
                     return;
                 }
 
@@ -656,11 +695,10 @@
                     name: name,
                     role: role,
                     email: email,
-                    password: "user123", // Default password rule for client authentication simulation
+                    password: password,
                     associatedProviderId: assignedProviderId
                 };
 
-                // Trigger remote Firebase platform entry sync pipeline
                 if (typeof window.registerUserToFirebase === "function") {
                     try {
                         await window.registerUserToFirebase(newIdentity, providerData);
