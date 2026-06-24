@@ -1,0 +1,678 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ServiceHub Lanka | Real-Time Live Chat</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/lucide@0.344.0/dist/umd/lucide.min.js"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: { extend: { colors: { primary: '#2563EB', success: '#10B981', background: '#efeae2' }}}
+        }
+    </script>
+    <style>
+        .custom-scrollbar::-webkit-scrollbar { width: 6px; height: 6px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #CBD5E1; border-radius: 10px; }
+        .chat-bg { background-color: #efeae2; background-image: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%239ba9b4' fill-opacity='0.15'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E"); }
+        .message-in { animation: slideInLeft 0.3s ease-out forwards; }
+        .message-out { animation: slideInRight 0.3s ease-out forwards; }
+        @keyframes slideInLeft { from { opacity: 0; transform: translateX(-10px); } to { opacity: 1; transform: translateX(0); } }
+        @keyframes slideInRight { from { opacity: 0; transform: translateX(10px); } to { opacity: 1; transform: translateX(0); } }
+    </style>
+</head>
+<body class="bg-slate-50 h-screen flex overflow-hidden font-sans text-slate-900 antialiased">
+
+    <!-- Global Loading / Auth Overlay -->
+    <div id="authGuardOverlay" class="fixed inset-0 z-50 bg-slate-900/90 backdrop-blur-sm flex flex-col items-center justify-center p-4 transition-opacity duration-300">
+        <div class="bg-white p-8 rounded-3xl max-w-sm w-full text-center shadow-2xl">
+            <i data-lucide="message-circle" class="w-12 h-12 text-primary mx-auto mb-4 animate-pulse"></i>
+            <h2 class="text-xl font-black text-slate-900 mb-2">Authenticating Session</h2>
+            <p id="authGuardMessage" class="text-sm text-slate-500 mb-6">Connecting to secure chat servers...</p>
+            <button onclick="window.close()" class="w-full bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold py-3 rounded-xl transition">Return to Marketplace</button>
+        </div>
+    </div>
+
+    <!-- Main Application Wrapper -->
+    <div class="flex w-full h-full max-w-[1600px] mx-auto bg-white shadow-2xl border-x border-slate-200 relative">
+        
+        <!-- Left Sidebar: Conversations List -->
+        <aside id="sidebarPanel" class="w-full md:w-[380px] flex-shrink-0 border-r border-slate-200 flex flex-col bg-white transition-all z-20 absolute md:relative h-full transform md:translate-x-0">
+            <!-- Sidebar Header -->
+            <div class="h-16 px-4 bg-slate-50 border-b border-slate-200 flex items-center justify-between">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 bg-primary/10 rounded-full flex items-center justify-center text-primary font-bold shadow-inner overflow-hidden relative">
+                        <i data-lucide="user" class="w-5 h-5"></i>
+                        <div class="absolute bottom-0 right-0 w-3 h-3 bg-green-500 border-2 border-white rounded-full"></div>
+                    </div>
+                    <div>
+                        <h2 class="font-bold text-sm text-slate-800 leading-tight" id="currentUserDisplay">Loading...</h2>
+                        <p class="text-[10px] text-green-600 font-mono font-bold uppercase tracking-wider">Online</p>
+                    </div>
+                </div>
+                <div class="flex gap-2 text-slate-400">
+                    <button class="p-2 hover:bg-slate-200 rounded-full transition"><i data-lucide="more-vertical" class="w-5 h-5"></i></button>
+                </div>
+            </div>
+
+            <!-- Search Bar -->
+            <div class="p-3 bg-white border-b border-slate-100">
+                <div class="bg-slate-100 flex items-center px-3 py-2 rounded-xl border border-slate-200 focus-within:border-primary focus-within:ring-1 focus-within:ring-primary transition">
+                    <i data-lucide="search" class="w-4 h-4 text-slate-400"></i>
+                    <input type="text" id="searchChats" onkeyup="filterConversations()" placeholder="Search conversations..." class="w-full bg-transparent border-none px-3 text-sm focus:outline-none text-slate-700">
+                </div>
+            </div>
+
+            <!-- Chats List Node -->
+            <div id="conversationsList" class="flex-grow overflow-y-auto custom-scrollbar bg-white divide-y divide-slate-100">
+                <!-- Dynamically Populated -->
+            </div>
+        </aside>
+
+        <!-- Main Chat Area -->
+        <main id="mainChatPanel" class="flex-grow flex flex-col relative chat-bg w-full">
+            <!-- Default Empty State -->
+            <div id="emptyChatState" class="absolute inset-0 flex flex-col items-center justify-center bg-slate-50 z-10">
+                <div class="w-24 h-24 bg-blue-50 rounded-full flex items-center justify-center mb-6 shadow-inner">
+                    <i data-lucide="message-square" class="w-10 h-10 text-primary"></i>
+                </div>
+                <h2 class="text-2xl font-black text-slate-800 mb-2">ServiceHub Live Connect</h2>
+                <p class="text-slate-500 text-sm max-w-md text-center">Select a conversation from the left menu to start messaging securely, or click "Chat Now" from a provider's profile.</p>
+                <div class="mt-8 flex items-center gap-2 text-xs font-mono text-slate-400 bg-white border border-slate-200 px-4 py-2 rounded-full shadow-sm">
+                    <i data-lucide="lock" class="w-3.5 h-3.5"></i> End-to-End Encrypted Session
+                </div>
+            </div>
+
+            <!-- Active Chat Header -->
+            <header class="h-16 px-4 bg-white/90 backdrop-blur-md border-b border-slate-200 flex items-center justify-between sticky top-0 z-20 shadow-sm">
+                <div class="flex items-center gap-3">
+                    <button onclick="toggleMobileSidebar()" class="md:hidden p-2 -ml-2 text-slate-500 hover:bg-slate-100 rounded-full transition">
+                        <i data-lucide="arrow-left" class="w-5 h-5"></i>
+                    </button>
+                    <div class="relative w-10 h-10 bg-slate-100 rounded-full border border-slate-200 flex items-center justify-center">
+                        <i data-lucide="user" class="text-slate-400 w-5 h-5"></i>
+                        <div id="activeRecipientStatusDot" class="absolute bottom-0 right-0 w-3 h-3 bg-slate-300 border-2 border-white rounded-full transition-colors"></div>
+                    </div>
+                    <div class="cursor-pointer" onclick="toggleRightPanel()">
+                        <h2 class="font-bold text-slate-900 text-sm md:text-base leading-tight" id="activeChatName">Recipient Name</h2>
+                        <p class="text-[11px] font-medium text-slate-500 transition-colors" id="activeChatStatus">Offline</p>
+                    </div>
+                </div>
+                <div class="flex items-center gap-1 md:gap-2">
+                    <button class="p-2 text-slate-400 hover:text-primary hover:bg-blue-50 rounded-full transition"><i data-lucide="phone" class="w-5 h-5"></i></button>
+                    <button onclick="toggleRightPanel()" class="p-2 text-slate-400 hover:text-primary hover:bg-blue-50 rounded-full transition hidden sm:block"><i data-lucide="info" class="w-5 h-5"></i></button>
+                </div>
+            </header>
+
+            <!-- Chat Messages History Window -->
+            <div id="chatHistoryWindow" class="flex-grow overflow-y-auto p-4 md:p-6 space-y-4 custom-scrollbar relative z-0">
+                <!-- Dynamically Populated Messages -->
+            </div>
+
+            <!-- Chat Input Area -->
+            <div class="bg-white/90 backdrop-blur-md p-3 md:p-4 border-t border-slate-200 z-20 relative">
+                <!-- File Preview Toast -->
+                <div id="filePreviewToast" class="hidden absolute bottom-full left-0 m-4 bg-white border border-slate-200 p-2 rounded-xl shadow-lg flex items-center gap-3">
+                    <div class="w-12 h-12 bg-slate-100 rounded-lg flex items-center justify-center overflow-hidden" id="previewThumb"></div>
+                    <div class="flex-grow">
+                        <p class="text-xs font-bold text-slate-800 truncate w-32" id="previewName">file.jpg</p>
+                        <p class="text-[10px] text-slate-400" id="previewSize">0 KB</p>
+                    </div>
+                    <button onclick="cancelAttachment()" class="p-1.5 text-slate-400 hover:text-red-500 bg-slate-50 rounded-lg"><i data-lucide="x" class="w-4 h-4"></i></button>
+                </div>
+
+                <form onsubmit="handleSendMessage(event)" class="flex items-end gap-2 max-w-4xl mx-auto">
+                    <div class="flex gap-1 pb-1">
+                        <button type="button" class="p-2.5 text-slate-400 hover:bg-slate-100 hover:text-slate-600 rounded-full transition">
+                            <i data-lucide="smile" class="w-5 h-5"></i>
+                        </button>
+                        <input type="file" id="fileAttachmentInput" class="hidden" onchange="handleFileSelection(event)">
+                        <button type="button" onclick="document.getElementById('fileAttachmentInput').click()" class="p-2.5 text-slate-400 hover:bg-slate-100 hover:text-slate-600 rounded-full transition">
+                            <i data-lucide="paperclip" class="w-5 h-5"></i>
+                        </button>
+                    </div>
+                    
+                    <div class="flex-grow bg-slate-100 border border-slate-200 rounded-2xl flex items-center overflow-hidden focus-within:ring-2 focus-within:ring-primary/20 focus-within:border-primary transition shadow-inner">
+                        <textarea id="messageInputBox" oninput="handleTypingIndicator()" onkeydown="handleEnterKey(event)" rows="1" placeholder="Type a message..." class="w-full bg-transparent border-none px-4 py-3 md:py-3.5 text-sm outline-none resize-none max-h-32 custom-scrollbar text-slate-700"></textarea>
+                    </div>
+                    
+                    <button type="submit" id="btnSendMessage" class="p-3.5 bg-primary hover:bg-blue-700 text-white rounded-2xl transition shadow-md flex items-center justify-center group shrink-0">
+                        <i data-lucide="send" class="w-5 h-5 group-hover:scale-110 transition-transform"></i>
+                    </button>
+                </form>
+            </div>
+        </main>
+
+        <!-- Right Info Panel (Provider/Job Details) -->
+        <aside id="rightInfoPanel" class="w-[320px] flex-shrink-0 bg-slate-50 border-l border-slate-200 hidden lg:flex flex-col z-10 transition-all">
+            <div class="h-16 border-b border-slate-200 flex items-center px-4 bg-white justify-between">
+                <h3 class="font-bold text-sm text-slate-800">Contact Info</h3>
+                <button onclick="toggleRightPanel()" class="p-1.5 text-slate-400 hover:bg-slate-100 rounded-lg lg:hidden"><i data-lucide="x" class="w-4 h-4"></i></button>
+            </div>
+            <div class="p-6 flex flex-col items-center border-b border-slate-200 bg-white">
+                <div class="w-24 h-24 bg-slate-100 rounded-full flex items-center justify-center mb-4 shadow-sm border border-slate-200">
+                    <i data-lucide="user" class="w-10 h-10 text-slate-300"></i>
+                </div>
+                <h2 class="text-lg font-black text-slate-900 text-center" id="panelName">Name</h2>
+                <p class="text-xs text-primary font-bold bg-blue-50 px-2.5 py-0.5 rounded-full mt-1 mb-3" id="panelRole">User Role</p>
+                
+                <div class="flex gap-2 w-full mt-2">
+                    <button onclick="alert('Navigating to profile...')" class="flex-1 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold py-2.5 rounded-xl transition">Profile</button>
+                    <button onclick="alert('Initiating contract workflow...')" class="flex-1 bg-slate-900 hover:bg-black text-white text-xs font-bold py-2.5 rounded-xl transition shadow-md">Hire Now</button>
+                </div>
+            </div>
+            
+            <div class="p-4 flex-grow overflow-y-auto">
+                <h4 class="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-3 font-mono">Shared Media & Links</h4>
+                <div class="grid grid-cols-3 gap-2" id="panelMediaGrid">
+                    <!-- Media Items -->
+                    <div class="aspect-square bg-slate-200 rounded-lg flex items-center justify-center text-slate-400 text-xs"><i data-lucide="image" class="w-4 h-4"></i></div>
+                    <div class="aspect-square bg-slate-200 rounded-lg flex items-center justify-center text-slate-400 text-xs"><i data-lucide="file-text" class="w-4 h-4"></i></div>
+                </div>
+            </div>
+        </aside>
+
+    </div>
+
+    <!-- Notification Sound -->
+    <audio id="notifySound" src="https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3" preload="auto"></audio>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+        import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+        import { getFirestore, collection, doc, setDoc, getDoc, onSnapshot, query, where, orderBy, addDoc, serverTimestamp, updateDoc, writeBatch } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+        import { getStorage, ref, uploadBytesResumable, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-storage.js";
+
+        // Must exactly match the configuration in index.html
+        const firebaseConfig = {
+            apiKey: "AIzaSyAoI3rf-cyZiCYgGDP4OEyvD2rAt1P9G04",
+            authDomain: "servicehub-lk.firebaseapp.com",
+            projectId: "servicehub-lk",
+            storageBucket: "servicehub-lk.firebasestorage.app",
+            messagingSenderId: "806300225388",
+            appId: "1:806300225388:web:592be29d9806c3fdf36d49",
+            measurementId: "G-EVZ41FRLLM"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+        const storage = getStorage(app);
+
+        // Global State variables
+        let currentUserContext = null;
+        let activeConversationId = null;
+        let activeRecipientData = null;
+        let typingTimeout = null;
+        let unsubscribeActiveChat = null;
+        let attachedFileBlob = null;
+
+        const urlParams = new URLSearchParams(window.location.search);
+        const targetProviderId = urlParams.get('providerId');
+        const targetCustomerId = urlParams.get('customerId');
+
+        // Initializer
+        window.addEventListener('DOMContentLoaded', () => {
+            lucide.createIcons();
+            
+            // Listen for session persistence instantly
+            onAuthStateChanged(auth, async (user) => {
+                const overlay = document.getElementById('authGuardOverlay');
+                const guardMessage = document.getElementById('authGuardMessage');
+
+                if (user) {
+                    try {
+                        const userDoc = await getDoc(doc(db, "users", user.uid));
+                        if(userDoc.exists()) {
+                            currentUserContext = userDoc.data();
+                            currentUserContext.uid = user.uid; // ensure UID is mapped
+                            
+                            // Setup local UI
+                            document.getElementById('currentUserDisplay').innerText = currentUserContext.name;
+                            overlay.classList.add('opacity-0', 'pointer-events-none');
+                            
+                            // Initialize Chat engine
+                            mountRealtimeListeners();
+                            
+                            // Auto-open specific chat if coming from profile
+                            if(targetProviderId || targetCustomerId) {
+                                autoInitializeTargetChat(targetProviderId, targetCustomerId);
+                            }
+                        } else {
+                            guardMessage.innerText = "User profile not found. Please log in through the main marketplace.";
+                            guardMessage.classList.add('text-red-500');
+                        }
+                    } catch(e) {
+                        console.error("Auth sync error:", e);
+                        guardMessage.innerText = "Connection error. Please refresh.";
+                    }
+                } else {
+                    guardMessage.innerText = "Access Denied: You are not logged in. Please close this tab and log in from the main site.";
+                    guardMessage.classList.add('text-red-500');
+                    document.getElementById('currentUserDisplay').innerText = "Guest Mode";
+                }
+            });
+            
+            adjustTextareaHeight();
+        });
+
+        // --------------------------------------------------------
+        // CORE MESSAGING ENGINE
+        // --------------------------------------------------------
+
+        function mountRealtimeListeners() {
+            // Listen to conversations where the user is a participant
+            const chatsRef = collection(db, "chats");
+            const q = query(chatsRef, where("participants", "array-contains", currentUserContext.uid));
+
+            onSnapshot(q, (snapshot) => {
+                const conversations = [];
+                snapshot.forEach(doc => conversations.push({ id: doc.id, ...doc.data() }));
+                
+                // Sort by last activity local (since Firestore complex index might be required otherwise)
+                conversations.sort((a, b) => {
+                    const timeA = a.lastActivity ? a.lastActivity.toMillis() : 0;
+                    const timeB = b.lastActivity ? b.lastActivity.toMillis() : 0;
+                    return timeB - timeA;
+                });
+                
+                renderSidebarConversations(conversations);
+            });
+
+            // Update user's own online status
+            updateOwnOnlineStatus(true);
+            window.addEventListener('beforeunload', () => updateOwnOnlineStatus(false));
+        }
+
+        async function autoInitializeTargetChat(provId, custId) {
+            // We construct a deterministic Chat ID so both parties always hit the same room.
+            // ID Format: "chat_customerID_providerID"
+            // To ensure compatibility, we resolve if current user is customer or provider
+            let finalCustId = custId;
+            let finalProvId = provId;
+
+            if(!finalCustId && currentUserContext.role === "Customer") finalCustId = currentUserContext.uid;
+            if(!finalProvId && currentUserContext.role === "Provider") finalProvId = currentUserContext.uid;
+
+            // Failsafe string generation (fallback to generic alphanumeric if ID is integer from mock db)
+            const deterministicId = `chat_C${finalCustId}_P${finalProvId}`;
+            
+            const chatRef = doc(db, "chats", deterministicId);
+            const chatDoc = await getDoc(chatRef);
+
+            if(!chatDoc.exists()) {
+                // Initialize the channel structure in Firestore
+                await setDoc(chatRef, {
+                    participants: [finalCustId.toString(), finalProvId.toString()],
+                    customerData: { id: finalCustId, name: currentUserContext.role === 'Customer' ? currentUserContext.name : "Customer" },
+                    providerData: { id: finalProvId, name: currentUserContext.role === 'Provider' ? currentUserContext.name : "Provider" },
+                    createdAt: serverTimestamp(),
+                    lastActivity: serverTimestamp(),
+                    lastMessage: "Conversation started.",
+                    unreadCount: { [finalCustId]: 0, [finalProvId]: 0 },
+                    typingStatus: { [finalCustId]: false, [finalProvId]: false }
+                });
+            }
+            
+            openConversationNode(deterministicId);
+        }
+
+        window.openConversationNode = async (chatId) => {
+            activeConversationId = chatId;
+            document.getElementById('emptyChatState').classList.add('hidden');
+            
+            if(window.innerWidth < 768) { document.getElementById('sidebarPanel').classList.add('-translate-x-full'); }
+
+            const chatDoc = await getDoc(doc(db, "chats", chatId));
+            if(!chatDoc.exists()) return;
+            const data = chatDoc.data();
+
+            // Resolve Recipient
+            activeRecipientData = data.customerData.id.toString() === currentUserContext.uid ? data.providerData : data.customerData;
+            
+            // Update UI Headers
+            document.getElementById('activeChatName').innerText = activeRecipientData.name;
+            document.getElementById('panelName').innerText = activeRecipientData.name;
+            document.getElementById('panelRole').innerText = activeRecipientData.id.toString().includes('P') ? "Service Provider" : "Customer";
+            
+            // Listen to recipient's live status 
+            listenToRecipientStatus(activeRecipientData.id);
+
+            // Clear previous message listener
+            if(unsubscribeActiveChat) unsubscribeActiveChat();
+
+            // Reset unread counts via Batch
+            const batch = writeBatch(db);
+            const chatRefUpdate = doc(db, "chats", chatId);
+            batch.update(chatRefUpdate, { [`unreadCount.${currentUserContext.uid}`]: 0 });
+            await batch.commit();
+
+            // Load Messages Realtime
+            const messagesRef = collection(db, `chats/${chatId}/messages`);
+            const msgQuery = query(messagesRef, orderBy("timestamp", "asc"));
+            
+            unsubscribeActiveChat = onSnapshot(msgQuery, (snapshot) => {
+                const windowNode = document.getElementById('chatHistoryWindow');
+                const wasAtBottom = isScrollAtBottom(windowNode);
+                
+                windowNode.innerHTML = '';
+                
+                let playSound = false;
+                let unreadMessagesIds = [];
+
+                snapshot.forEach(docSnapshot => {
+                    const msg = docSnapshot.data();
+                    msg.id = docSnapshot.id;
+                    const isMine = msg.senderId === currentUserContext.uid;
+                    
+                    windowNode.innerHTML += buildMessageBubble(msg, isMine);
+                    
+                    if(!isMine && msg.status !== 'read') {
+                        unreadMessagesIds.push(msg.id);
+                        if(msg.timestamp && (Date.now() - msg.timestamp.toMillis() < 5000)) playSound = true;
+                    }
+                });
+
+                lucide.createIcons();
+                
+                if(wasAtBottom || playSound) scrollToBottom();
+                if(playSound && document.visibilityState === 'visible') { document.getElementById('notifySound').play().catch(e=>console.log("Audio block", e)); }
+
+                // Mark messages as read
+                if(unreadMessagesIds.length > 0 && document.visibilityState === 'visible') {
+                    const updateBatch = writeBatch(db);
+                    unreadMessagesIds.forEach(id => {
+                        updateBatch.update(doc(db, `chats/${chatId}/messages`, id), { status: 'read' });
+                    });
+                    updateBatch.commit();
+                }
+            });
+
+            // Listen for Recipient Typing inside this chat
+            onSnapshot(doc(db, "chats", chatId), (docSnap) => {
+                if(docSnap.exists()) {
+                    const d = docSnap.data();
+                    const statusDot = document.getElementById('activeRecipientStatusDot');
+                    const statusText = document.getElementById('activeChatStatus');
+                    
+                    if(d.typingStatus && d.typingStatus[activeRecipientData.id]) {
+                        statusText.innerText = "Typing...";
+                        statusText.classList.replace('text-slate-500', 'text-primary');
+                    } else {
+                        statusText.classList.replace('text-primary', 'text-slate-500');
+                        // Will fallback to online/offline state via user presence listener
+                    }
+                }
+            });
+        }
+
+        // --------------------------------------------------------
+        // SENDING MESSAGES & FILES
+        // --------------------------------------------------------
+
+        window.handleSendMessage = async (e) => {
+            e.preventDefault();
+            if(!activeConversationId) return;
+
+            const inputNode = document.getElementById('messageInputBox');
+            const textContent = inputNode.value.trim();
+            
+            if(!textContent && !attachedFileBlob) return;
+
+            // Reset UI instantly
+            inputNode.value = '';
+            inputNode.style.height = 'auto';
+            const fileData = attachedFileBlob; 
+            cancelAttachment(); // close toast
+            scrollToBottom();
+
+            let fileUrl = null;
+            let fileType = 'text';
+
+            if(fileData) {
+                fileType = fileData.type.startsWith('image/') ? 'image' : 'file';
+                const storageRefInstance = ref(storage, `chat_attachments/${Date.now()}_${fileData.name}`);
+                
+                // Show a fake loading bubble here if necessary
+                const uploadTask = await uploadBytesResumable(storageRefInstance, fileData);
+                fileUrl = await getDownloadURL(uploadTask.ref);
+            }
+
+            const newMessageData = {
+                senderId: currentUserContext.uid,
+                receiverId: activeRecipientData.id.toString(),
+                text: textContent,
+                type: fileType,
+                fileUrl: fileUrl,
+                fileName: fileData ? fileData.name : null,
+                timestamp: serverTimestamp(),
+                status: 'sent' // sent -> delivered -> read
+            };
+
+            const batch = writeBatch(db);
+            const newMsgRef = doc(collection(db, `chats/${activeConversationId}/messages`));
+            batch.set(newMsgRef, newMessageData);
+
+            // Update parent chat
+            const chatRef = doc(db, "chats", activeConversationId);
+            batch.update(chatRef, {
+                lastActivity: serverTimestamp(),
+                lastMessage: fileType === 'text' ? textContent : `📷 Sent an attachment`,
+                [`unreadCount.${activeRecipientData.id}`]: 1 // Simplified increment
+            });
+
+            // Turn off typing
+            batch.update(chatRef, { [`typingStatus.${currentUserContext.uid}`]: false });
+
+            await batch.commit();
+        };
+
+        window.handleEnterKey = (e) => {
+            if(e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                handleSendMessage(e);
+            }
+        };
+
+        window.handleTypingIndicator = () => {
+            adjustTextareaHeight();
+            if(!activeConversationId) return;
+
+            const chatRef = doc(db, "chats", activeConversationId);
+            updateDoc(chatRef, { [`typingStatus.${currentUserContext.uid}`]: true });
+
+            if(typingTimeout) clearTimeout(typingTimeout);
+            typingTimeout = setTimeout(() => {
+                updateDoc(chatRef, { [`typingStatus.${currentUserContext.uid}`]: false });
+            }, 2000);
+        };
+
+        // --------------------------------------------------------
+        // FILE HANDLING
+        // --------------------------------------------------------
+        
+        window.handleFileSelection = (e) => {
+            const file = e.target.files[0];
+            if(!file) return;
+            
+            // Limit to 5MB
+            if(file.size > 5 * 1024 * 1024) { alert("File must be under 5MB."); return; }
+
+            attachedFileBlob = file;
+            const toast = document.getElementById('filePreviewToast');
+            const thumb = document.getElementById('previewThumb');
+            
+            document.getElementById('previewName').innerText = file.name;
+            document.getElementById('previewSize').innerText = (file.size / 1024).toFixed(1) + ' KB';
+
+            if(file.type.startsWith('image/')) {
+                const reader = new FileReader();
+                reader.onload = (e) => thumb.innerHTML = `<img src="${e.target.result}" class="w-full h-full object-cover">`;
+                reader.readAsDataURL(file);
+            } else {
+                thumb.innerHTML = `<i data-lucide="file-text" class="w-6 h-6 text-slate-400"></i>`;
+                lucide.createIcons();
+            }
+
+            toast.classList.remove('hidden');
+        };
+
+        window.cancelAttachment = () => {
+            attachedFileBlob = null;
+            document.getElementById('fileAttachmentInput').value = "";
+            document.getElementById('filePreviewToast').classList.add('hidden');
+        };
+
+        // --------------------------------------------------------
+        // UI RENDERING & HELPERS
+        // --------------------------------------------------------
+
+        function buildMessageBubble(msg, isMine) {
+            const timeString = msg.timestamp ? new Date(msg.timestamp.toMillis()).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) : 'Sending...';
+            
+            let statusIcon = '<i data-lucide="clock" class="w-3 h-3 opacity-50"></i>';
+            if(msg.status === 'sent') statusIcon = '<i data-lucide="check" class="w-3.5 h-3.5 text-blue-200"></i>';
+            if(msg.status === 'read') statusIcon = '<i data-lucide="check-check" class="w-3.5 h-3.5 text-amber-300"></i>';
+
+            let contentHtml = msg.text ? `<p class="whitespace-pre-wrap leading-relaxed">${msg.text}</p>` : '';
+            
+            if(msg.type === 'image' && msg.fileUrl) {
+                contentHtml = `<img src="${msg.fileUrl}" class="rounded-lg mb-2 max-w-full max-h-48 object-cover cursor-pointer hover:opacity-90 transition">` + contentHtml;
+            } else if(msg.type === 'file' && msg.fileUrl) {
+                contentHtml = `<a href="${msg.fileUrl}" target="_blank" class="flex items-center gap-2 bg-black/10 p-2 rounded-lg mb-2 hover:bg-black/20 transition"><i data-lucide="file" class="w-5 h-5"></i><span class="text-xs font-bold underline truncate w-32">${msg.fileName}</span></a>` + contentHtml;
+            }
+
+            if(isMine) {
+                return `
+                <div class="flex justify-end message-out">
+                    <div class="bg-primary text-white text-[13px] md:text-sm py-2 px-3.5 rounded-2xl rounded-br-sm max-w-[85%] md:max-w-[70%] shadow-sm relative group">
+                        ${contentHtml}
+                        <div class="flex items-center justify-end gap-1 mt-1">
+                            <span class="text-[10px] text-blue-100 font-medium">${timeString}</span>
+                            ${statusIcon}
+                        </div>
+                    </div>
+                </div>`;
+            } else {
+                return `
+                <div class="flex justify-start message-in">
+                    <div class="bg-white text-slate-800 text-[13px] md:text-sm py-2 px-3.5 rounded-2xl rounded-bl-sm max-w-[85%] md:max-w-[70%] shadow-sm border border-slate-100 relative group">
+                        ${contentHtml}
+                        <div class="flex items-center justify-start gap-1 mt-1">
+                            <span class="text-[10px] text-slate-400 font-medium">${timeString}</span>
+                        </div>
+                    </div>
+                </div>`;
+            }
+        }
+
+        function renderSidebarConversations(conversations) {
+            const listNode = document.getElementById('conversationsList');
+            if(conversations.length === 0) {
+                listNode.innerHTML = `<div class="p-8 text-center text-slate-400 text-xs">No active conversations.</div>`;
+                return;
+            }
+
+            listNode.innerHTML = conversations.map(chat => {
+                const otherParty = chat.customerData.id.toString() === currentUserContext.uid ? chat.providerData : chat.customerData;
+                const unread = chat.unreadCount ? chat.unreadCount[currentUserContext.uid] || 0 : 0;
+                const unreadBadge = unread > 0 ? `<div class="bg-primary text-white text-[10px] font-bold w-5 h-5 flex items-center justify-center rounded-full ml-auto shadow-sm">${unread}</div>` : '';
+                const timeStr = chat.lastActivity ? new Date(chat.lastActivity.toMillis()).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) : '';
+                const isActive = activeConversationId === chat.id;
+
+                return `
+                <div onclick="openConversationNode('${chat.id}')" class="chat-list-item cursor-pointer p-3 md:p-4 hover:bg-slate-50 transition flex items-center gap-3 ${isActive ? 'bg-blue-50/50 border-l-4 border-primary' : 'border-l-4 border-transparent'}">
+                    <div class="w-12 h-12 bg-slate-100 rounded-full border border-slate-200 flex items-center justify-center shrink-0">
+                        <i data-lucide="user" class="text-slate-400 w-6 h-6"></i>
+                    </div>
+                    <div class="flex-grow min-w-0">
+                        <div class="flex justify-between items-baseline mb-0.5">
+                            <h3 class="font-bold text-sm text-slate-900 truncate">${otherParty.name}</h3>
+                            <span class="text-[10px] text-slate-400 whitespace-nowrap ml-2">${timeStr}</span>
+                        </div>
+                        <p class="text-xs ${unread > 0 ? 'text-slate-800 font-bold' : 'text-slate-500'} truncate w-full">${chat.typingStatus && chat.typingStatus[otherParty.id] ? '<span class="text-primary italic">Typing...</span>' : chat.lastMessage}</p>
+                    </div>
+                    ${unreadBadge}
+                </div>`;
+            }).join('');
+            lucide.createIcons();
+            
+            // Reapply search filter if active
+            window.filterConversations();
+        }
+
+        window.filterConversations = () => {
+            const query = document.getElementById('searchChats').value.toLowerCase();
+            document.querySelectorAll('.chat-list-item').forEach(el => {
+                const name = el.querySelector('h3').innerText.toLowerCase();
+                el.style.display = name.includes(query) ? 'flex' : 'none';
+            });
+        };
+
+        // --------------------------------------------------------
+        // PRESENCE & UTILS
+        // --------------------------------------------------------
+
+        function listenToRecipientStatus(uid) {
+            const userStatusRef = doc(db, "users_status", uid.toString());
+            onSnapshot(userStatusRef, (docSnap) => {
+                const statusDot = document.getElementById('activeRecipientStatusDot');
+                const statusText = document.getElementById('activeChatStatus');
+                
+                // Don't overwrite "Typing..." text if active
+                const isTyping = statusText.innerText === "Typing...";
+
+                if(docSnap.exists() && docSnap.data().online) {
+                    statusDot.classList.replace('bg-slate-300', 'bg-green-500');
+                    if(!isTyping) statusText.innerText = "Online";
+                } else {
+                    statusDot.classList.replace('bg-green-500', 'bg-slate-300');
+                    if(docSnap.exists() && docSnap.data().lastSeen) {
+                        const ls = new Date(docSnap.data().lastSeen.toMillis()).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'});
+                        if(!isTyping) statusText.innerText = `Last seen at ${ls}`;
+                    } else {
+                        if(!isTyping) statusText.innerText = "Offline";
+                    }
+                }
+            });
+        }
+
+        async function updateOwnOnlineStatus(isOnline) {
+            if(!currentUserContext) return;
+            const statusRef = doc(db, "users_status", currentUserContext.uid.toString());
+            await setDoc(statusRef, { 
+                online: isOnline, 
+                lastSeen: serverTimestamp() 
+            }, { merge: true });
+        }
+
+        function scrollToBottom() {
+            const w = document.getElementById('chatHistoryWindow');
+            w.scrollTop = w.scrollHeight;
+        }
+
+        function isScrollAtBottom(el) {
+            return el.scrollHeight - el.scrollTop <= el.clientHeight + 100;
+        }
+
+        function adjustTextareaHeight() {
+            const el = document.getElementById('messageInputBox');
+            el.style.height = 'auto';
+            el.style.height = (el.scrollHeight) + 'px';
+        }
+
+        window.toggleMobileSidebar = () => {
+            document.getElementById('sidebarPanel').classList.remove('-translate-x-full');
+            activeConversationId = null; // Clear context visually
+        }
+
+        window.toggleRightPanel = () => {
+            const p = document.getElementById('rightInfoPanel');
+            p.classList.toggle('hidden');
+        }
+
+    </script>
+</body>
+</html>
