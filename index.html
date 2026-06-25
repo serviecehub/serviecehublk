@@ -399,12 +399,7 @@
         window.monitorAuthState = (callback) => {
             onAuthStateChanged(auth, async (user) => {
                 if(user) {
-                    let userDoc = await getDoc(doc(db, "users", user.uid));
-                    // FIX: Prevent immediate logout race condition during registration
-                    if(!userDoc.exists()) {
-                        await new Promise(r => setTimeout(r, 2000));
-                        userDoc = await getDoc(doc(db, "users", user.uid));
-                    }
+                    const userDoc = await getDoc(doc(db, "users", user.uid));
                     if(userDoc.exists()) {
                         callback(userDoc.data());
                     } else {
@@ -422,9 +417,6 @@
                 const authCredential = await createUserWithEmailAndPassword(auth, userData.email, password);
                 userData.firebaseUid = authCredential.user.uid;
                 userData.id = authCredential.user.uid; 
-
-                // FIX: Write the user document first to immediately resolve race condition
-                await setDoc(doc(db, "users", authCredential.user.uid), userData);
 
                 if (providerData) {
                     providerData.firebaseUid = authCredential.user.uid;
@@ -451,10 +443,9 @@
                     userData.associatedProviderId = providerRef.id;
                     
                     await setDoc(doc(db, "providers", providerRef.id), providerData);
-                    // FIX: Merge associatedProviderId backward to user profile
-                    await setDoc(doc(db, "users", authCredential.user.uid), userData, { merge: true });
                 }
 
+                await setDoc(doc(db, "users", authCredential.user.uid), userData);
                 return { success: true, user: userData };
             } catch (error) {
                 throw error;
