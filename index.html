@@ -40,6 +40,9 @@
                     <button id="btnProviderUpgradeTier" onclick="triggerProviderUpgrade()" class="hidden bg-amber-500 hover:bg-amber-600 text-white text-xs font-bold px-3 py-2 rounded-xl flex items-center gap-1.5 transition">
                         <i data-lucide="zap" class="w-3.5 h-3.5"></i> Upgrade to Premium
                     </button>
+                    <button id="btnProviderChat" onclick="window.open('chat.html', '_blank')" class="hidden bg-primary hover:bg-blue-700 text-white text-xs font-bold px-3 py-2 rounded-xl flex items-center gap-1.5 transition">
+                        <i data-lucide="message-square" class="w-3.5 h-3.5"></i> Chat Access
+                    </button>
                     
                     <div id="userRoleBadge" class="text-[10px] font-mono font-black uppercase bg-slate-900 text-white px-2 py-1 rounded">Role</div>
                     <div class="flex items-center gap-2 bg-blue-50 border border-blue-100 px-3 py-1.5 rounded-xl text-primary font-bold text-sm">
@@ -85,97 +88,106 @@
             </section>
         </div>
 
-        <div id="providerPortalWorkspace" class="hidden space-y-8 animate-in fade-in duration-300">
-            <header class="grid sm:grid-cols-3 gap-4">
-                <div class="bg-white border border-slate-200 p-6 rounded-2xl shadow-sm">
-                    <span class="block text-xs font-bold text-slate-400 uppercase font-mono tracking-wider">Gross Income Summary (5% Commission System)</span>
-                    <h3 id="providerEarningsWidget" class="text-3xl font-black text-slate-900 mt-2">LKR 0.00</h3>
-                    <div class="text-[11px] text-slate-500 font-medium mt-1 space-y-0.5">
-                        <div class="flex justify-between"><span>Total Hired Volume:</span><span id="providerGrossAmt" class="font-bold">LKR 0</span></div>
-                        <div class="flex justify-between text-amber-600"><span>Platform Fee (5%):</span><span id="providerFeeAmt" class="font-bold">-LKR 0</span></div>
-                        <div class="flex justify-between text-emerald-600 border-t border-slate-100 pt-0.5"><span>Net Remittance Yield:</span><span id="providerNetAmt" class="font-bold">LKR 0</span></div>
-                    </div>
-                </div>
-                <div class="bg-white border border-slate-200 p-6 rounded-2xl shadow-sm flex flex-col justify-between">
-                    <div>
-                        <span class="block text-xs font-bold text-slate-400 uppercase font-mono tracking-wider">Jobs Assigned To Me</span>
-                        <h3 id="providerActiveCountWidget" class="text-3xl font-black text-primary mt-2">0 Requests</h3>
-                    </div>
-                    <p class="text-[10px] text-slate-400">Active client operational pipelines</p>
-                </div>
-                <div class="bg-white border border-slate-200 p-6 rounded-2xl shadow-sm flex flex-col justify-between">
-                    <div>
-                        <span class="block text-xs font-bold text-slate-400 uppercase font-mono tracking-wider">Public Trust Rating</span>
-                        <h3 id="providerRatingWidget" class="text-3xl font-black text-amber-500 mt-2">⭐ 5.0</h3>
-                    </div>
-                    <p class="text-[10px] text-slate-400">Recalculated from verified client reviews</p>
-                </div>
-            </header>
+        <div id="providerPortalWorkspace" class="hidden animate-in fade-in duration-300">
+            <div id="providerPendingBlock" class="hidden text-center py-16 bg-white rounded-3xl border border-amber-200 shadow-sm mx-auto max-w-2xl my-8">
+                <i data-lucide="clock" class="w-12 h-12 text-amber-400 mx-auto mb-4"></i>
+                <h2 class="text-2xl font-black text-slate-900 mb-2">Account Under Review</h2>
+                <p class="text-slate-500 mb-6 text-sm px-6">Your provider account is currently under review by administrators. Verification may take up to 24 hours.</p>
+                <div id="approvalCountdown" class="text-4xl font-mono font-black text-amber-500 bg-amber-50 inline-block px-6 py-3 rounded-xl border border-amber-100">24h 00m 00s</div>
+            </div>
 
-            <section class="grid md:grid-cols-2 gap-6">
-                <div class="bg-white border border-slate-200 rounded-3xl p-6 shadow-sm flex flex-col">
-                    <h2 class="text-lg font-black text-slate-900 mb-1">Profit & Loss (PnL) Analytics</h2>
-                    <p class="text-xs text-slate-500 mb-4">Your platform earnings trajectory over the last 6 months.</p>
-                    <div class="flex-grow flex items-center justify-center">
-                        <canvas id="pnlChartCanvas" class="w-full max-h-60"></canvas>
+            <div id="providerActiveBlock" class="space-y-8">
+                <header class="grid sm:grid-cols-3 gap-4">
+                    <div class="bg-white border border-slate-200 p-6 rounded-2xl shadow-sm">
+                        <span class="block text-xs font-bold text-slate-400 uppercase font-mono tracking-wider">Gross Income Summary (5% Commission System)</span>
+                        <h3 id="providerEarningsWidget" class="text-3xl font-black text-slate-900 mt-2">LKR 0.00</h3>
+                        <div class="text-[11px] text-slate-500 font-medium mt-1 space-y-0.5">
+                            <div class="flex justify-between"><span>Total Hired Volume:</span><span id="providerGrossAmt" class="font-bold">LKR 0</span></div>
+                            <div class="flex justify-between text-amber-600"><span>Platform Fee (5%):</span><span id="providerFeeAmt" class="font-bold">-LKR 0</span></div>
+                            <div class="flex justify-between text-emerald-600 border-t border-slate-100 pt-0.5"><span>Net Remittance Yield:</span><span id="providerNetAmt" class="font-bold">LKR 0</span></div>
+                        </div>
                     </div>
-                </div>
+                    <div class="bg-white border border-slate-200 p-6 rounded-2xl shadow-sm flex flex-col justify-between">
+                        <div>
+                            <span class="block text-xs font-bold text-slate-400 uppercase font-mono tracking-wider">Jobs Assigned To Me</span>
+                            <h3 id="providerActiveCountWidget" class="text-3xl font-black text-primary mt-2">0 Requests</h3>
+                        </div>
+                        <p class="text-[10px] text-slate-400">Active client operational pipelines</p>
+                    </div>
+                    <div class="bg-white border border-slate-200 p-6 rounded-2xl shadow-sm flex flex-col justify-between">
+                        <div>
+                            <span class="block text-xs font-bold text-slate-400 uppercase font-mono tracking-wider">Public Trust Rating</span>
+                            <h3 id="providerRatingWidget" class="text-3xl font-black text-amber-500 mt-2">⭐ 5.0</h3>
+                        </div>
+                        <p class="text-[10px] text-slate-400">Recalculated from verified client reviews</p>
+                    </div>
+                </header>
 
-                <div class="bg-white border border-slate-200 rounded-3xl p-6 shadow-sm space-y-5">
-                    <div>
-                        <h2 class="text-lg font-black text-slate-900 mb-1">Profile Customizer</h2>
-                        <p class="text-xs text-slate-500">Edit how clients see your workspace on the marketplace.</p>
-                    </div>
-                    
-                    <div>
-                        <label class="block text-xs font-bold text-slate-500 mb-1">Public Description</label>
-                        <textarea id="providerDescInput" rows="3" class="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 text-sm focus:border-primary outline-none" placeholder="E.g. Specializing in aesthetic outdoor photography with matte cinematic effects..."></textarea>
-                        <button onclick="saveProviderDescription()" class="mt-2 bg-slate-900 text-white text-xs font-bold px-4 py-2 rounded-lg hover:bg-black transition">Save Description</button>
-                    </div>
-
-                    <div>
-                        <label class="block text-xs font-bold text-slate-500 mb-1 flex justify-between items-center">
-                            Portfolio Images
-                            <span class="text-[10px] font-normal text-slate-400">Click X to remove</span>
-                        </label>
-                        <div id="providerImageGallery" class="flex gap-3 overflow-x-auto mb-3 custom-scrollbar pb-2 items-center min-h-[5rem]"></div>
-                        <div class="flex gap-2">
-                            <input type="text" id="newImageUrlInput" placeholder="Paste image URL (e.g., https://.../cafe-terrace.jpg)" class="flex-grow bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-sm outline-none focus:border-primary">
-                            <button onclick="addProviderImage()" class="bg-primary text-white text-xs font-bold px-4 py-2 rounded-xl hover:bg-blue-700 shadow-sm transition">Add Photo</button>
+                <section class="grid md:grid-cols-2 gap-6">
+                    <div class="bg-white border border-slate-200 rounded-3xl p-6 shadow-sm flex flex-col">
+                        <h2 class="text-lg font-black text-slate-900 mb-1">Profit & Loss (PnL) Analytics</h2>
+                        <p class="text-xs text-slate-500 mb-4">Your platform earnings trajectory over the last 6 months.</p>
+                        <div class="flex-grow flex items-center justify-center">
+                            <canvas id="pnlChartCanvas" class="w-full max-h-60"></canvas>
                         </div>
                     </div>
 
-                    <div class="mt-8 border-t border-slate-200 pt-6">
-                        <h2 class="text-lg font-black text-slate-900 mb-1">Service Packages <span class="bg-amber-100 text-amber-600 text-[10px] px-2 py-0.5 rounded-full uppercase ml-1">New</span></h2>
-                        <p class="text-xs text-slate-500 mb-4">Define exact packages clients can choose from.</p>
+                    <div class="bg-white border border-slate-200 rounded-3xl p-6 shadow-sm space-y-5">
+                        <div>
+                            <h2 class="text-lg font-black text-slate-900 mb-1">Profile Customizer</h2>
+                            <p class="text-xs text-slate-500">Edit how clients see your workspace on the marketplace.</p>
+                        </div>
                         
-                        <div id="providerPackagesList" class="space-y-3 mb-4 max-h-48 overflow-y-auto custom-scrollbar pr-2"></div>
-                        
-                        <div class="bg-slate-50 p-4 rounded-xl border border-slate-200 space-y-3">
-                            <input type="text" id="pkgName" placeholder="Package Title (e.g., Basic Wedding Coverage)" class="w-full bg-white border border-slate-200 rounded-lg px-3 py-2 text-xs outline-none focus:border-primary">
-                            <textarea id="pkgDesc" placeholder="Short description of the package..." class="w-full bg-white border border-slate-200 rounded-lg px-3 py-2 text-xs outline-none focus:border-primary" rows="2"></textarea>
+                        <div>
+                            <label class="block text-xs font-bold text-slate-500 mb-1">Public Description</label>
+                            <textarea id="providerDescInput" rows="3" class="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 text-sm focus:border-primary outline-none" placeholder="E.g. Specializing in aesthetic outdoor photography with matte cinematic effects..."></textarea>
+                            <button onclick="saveProviderDescription()" class="mt-2 bg-slate-900 text-white text-xs font-bold px-4 py-2 rounded-lg hover:bg-black transition">Save Description</button>
+                        </div>
+
+                        <div>
+                            <label class="block text-xs font-bold text-slate-500 mb-1 flex justify-between items-center">
+                                Portfolio Images
+                                <span class="text-[10px] font-normal text-slate-400">Click X to remove</span>
+                            </label>
+                            <div id="providerImageGallery" class="flex gap-3 overflow-x-auto mb-3 custom-scrollbar pb-2 items-center min-h-[5rem]"></div>
                             <div class="flex gap-2">
-                                <input type="number" id="pkgPrice" placeholder="Price (LKR)" class="w-1/2 bg-white border border-slate-200 rounded-lg px-3 py-2 text-xs outline-none focus:border-primary">
-                                <input type="text" id="pkgTime" placeholder="Est. Time (e.g., 2 Weeks)" class="w-1/2 bg-white border border-slate-200 rounded-lg px-3 py-2 text-xs outline-none focus:border-primary">
+                                <input type="text" id="newImageUrlInput" placeholder="Paste image URL (e.g., https://.../cafe-terrace.jpg)" class="flex-grow bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-sm outline-none focus:border-primary">
+                                <button onclick="addProviderImage()" class="bg-primary text-white text-xs font-bold px-4 py-2 rounded-xl hover:bg-blue-700 shadow-sm transition">Add Photo</button>
                             </div>
-                            <input type="text" id="pkgFeatures" placeholder="Features (comma separated: e.g. 100 Photos, Album)" class="w-full bg-white border border-slate-200 rounded-lg px-3 py-2 text-xs outline-none focus:border-primary">
-                            <button onclick="addProviderPackage()" class="w-full bg-slate-900 text-white text-xs font-bold px-4 py-2 rounded-lg hover:bg-black transition">Create New Package</button>
                         </div>
-                    </div>
 
-                </div>
-            </section>
+                        <div class="mt-8 border-t border-slate-200 pt-6">
+                            <h2 class="text-lg font-black text-slate-900 mb-1">Service Packages <span class="bg-amber-100 text-amber-600 text-[10px] px-2 py-0.5 rounded-full uppercase ml-1">New</span></h2>
+                            <p class="text-xs text-slate-500 mb-4">Define exact packages clients can choose from.</p>
+                            
+                            <div id="providerPackagesList" class="space-y-3 mb-4 max-h-48 overflow-y-auto custom-scrollbar pr-2"></div>
+                            
+                            <div class="bg-slate-50 p-4 rounded-xl border border-slate-200 space-y-3">
+                                <input type="text" id="pkgName" placeholder="Package Title (e.g., Basic Wedding Coverage)" class="w-full bg-white border border-slate-200 rounded-lg px-3 py-2 text-xs outline-none focus:border-primary">
+                                <textarea id="pkgDesc" placeholder="Short description of the package..." class="w-full bg-white border border-slate-200 rounded-lg px-3 py-2 text-xs outline-none focus:border-primary" rows="2"></textarea>
+                                <div class="flex gap-2">
+                                    <input type="number" id="pkgPrice" placeholder="Price (LKR)" class="w-1/2 bg-white border border-slate-200 rounded-lg px-3 py-2 text-xs outline-none focus:border-primary">
+                                    <input type="text" id="pkgTime" placeholder="Est. Time (e.g., 2 Weeks)" class="w-1/2 bg-white border border-slate-200 rounded-lg px-3 py-2 text-xs outline-none focus:border-primary">
+                                </div>
+                                <input type="text" id="pkgFeatures" placeholder="Features (comma separated: e.g. 100 Photos, Album)" class="w-full bg-white border border-slate-200 rounded-lg px-3 py-2 text-xs outline-none focus:border-primary">
+                                <button onclick="addProviderPackage()" class="w-full bg-slate-900 text-white text-xs font-bold px-4 py-2 rounded-lg hover:bg-black transition">Create New Package</button>
+                            </div>
+                        </div>
 
-            <section class="bg-white border border-slate-200 rounded-3xl overflow-hidden shadow-sm">
-                <div class="p-6 border-b border-slate-200 bg-slate-50/50 flex justify-between items-center">
-                    <div>
-                        <h2 class="text-lg font-black text-slate-900">Client Assignments Ledger (Inbound Contracts)</h2>
-                        <p class="text-xs text-slate-500">Track incoming customer hires, execute structural milestones, and process payouts.</p>
                     </div>
-                    <span class="bg-blue-100 text-primary text-[10px] font-black uppercase px-2.5 py-1 rounded-full font-mono">Live Inbound Hires</span>
-                </div>
-                <div class="divide-y divide-slate-200" id="providerAppointmentsListNode"></div>
-            </section>
+                </section>
+
+                <section class="bg-white border border-slate-200 rounded-3xl overflow-hidden shadow-sm">
+                    <div class="p-6 border-b border-slate-200 bg-slate-50/50 flex justify-between items-center">
+                        <div>
+                            <h2 class="text-lg font-black text-slate-900">Client Assignments Ledger (Inbound Contracts)</h2>
+                            <p class="text-xs text-slate-500">Track incoming customer hires, execute structural milestones, and process payouts.</p>
+                        </div>
+                        <span class="bg-blue-100 text-primary text-[10px] font-black uppercase px-2.5 py-1 rounded-full font-mono">Live Inbound Hires</span>
+                    </div>
+                    <div class="divide-y divide-slate-200" id="providerAppointmentsListNode"></div>
+                </section>
+            </div>
         </div>
     </main>
 
@@ -339,6 +351,15 @@
                             <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1 font-mono">Base Rate Value Layout (LKR)</label>
                             <input type="text" id="authFormRates" placeholder="e.g. LKR 50,000 Base" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm outline-none focus:border-primary">
                         </div>
+                        
+                        <div class="border-t border-slate-200 pt-3">
+                            <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1 font-mono">National ID Front Image <span class="text-red-500">*</span></label>
+                            <input type="file" id="authFormNICFront" accept=".jpg,.jpeg,.png,.webp" class="w-full text-xs text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-bold file:bg-blue-50 file:text-primary hover:file:bg-blue-100 cursor-pointer outline-none focus:border-primary">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1 font-mono">National ID Back Image <span class="text-red-500">*</span></label>
+                            <input type="file" id="authFormNICBack" accept=".jpg,.jpeg,.png,.webp" class="w-full text-xs text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-bold file:bg-blue-50 file:text-primary hover:file:bg-blue-100 cursor-pointer outline-none focus:border-primary">
+                        </div>
                     </div>
                 </div>
 
@@ -355,9 +376,10 @@
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-        // NEW FEATURE: Added onAuthStateChanged for Login Session Persistence
         import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
         import { getFirestore, doc, setDoc, getDoc, collection, addDoc, getDocs, onSnapshot } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+        // NEW IMPORTS FOR STORAGE
+        import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-storage.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyAoI3rf-cyZiCYgGDP4OEyvD2rAt1P9G04",
@@ -372,8 +394,8 @@
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
         const db = getFirestore(app);
+        const storage = getStorage(app); // Initialized Storage Reference
 
-        // NEW FEATURE: Session Persistence Monitor
         window.monitorAuthState = (callback) => {
             onAuthStateChanged(auth, async (user) => {
                 if(user) {
@@ -389,7 +411,8 @@
             });
         };
 
-        window.registerUserToFirebase = async (userData, providerData, password) => {
+        // MODIFIED for Req 1 & 2: Handles File upload during registration
+        window.registerUserToFirebase = async (userData, providerData, password, idFiles) => {
             try {
                 const authCredential = await createUserWithEmailAndPassword(auth, userData.email, password);
                 userData.firebaseUid = authCredential.user.uid;
@@ -399,6 +422,21 @@
                     providerData.firebaseUid = authCredential.user.uid;
                     delete providerData.id; 
                     
+                    if (idFiles && idFiles.front && idFiles.back) {
+                        try {
+                            const frontRef = ref(storage, `provider_verification/${authCredential.user.uid}/front.jpg`);
+                            const backRef = ref(storage, `provider_verification/${authCredential.user.uid}/back.jpg`);
+                            await uploadBytes(frontRef, idFiles.front);
+                            await uploadBytes(backRef, idFiles.back);
+                            providerData.idFrontUrl = await getDownloadURL(frontRef);
+                            providerData.idBackUrl = await getDownloadURL(backRef);
+                        } catch (e) {
+                            console.error("Storage upload bypassed/failed: ", e);
+                            providerData.idFrontUrl = "storage-upload-failed";
+                            providerData.idBackUrl = "storage-upload-failed";
+                        }
+                    }
+
                     const providerRef = await addDoc(collection(db, "providers"), providerData);
                     
                     providerData.id = providerRef.id;
@@ -527,14 +565,14 @@
             { name: "Graphic Design", icon: "palette" }
         ];
 
-        // System Runtime Controls
         let sessionUserRecord = null; 
         let activeScopeCategoryFilter = null;
         let selectedReviewFormScore = 5;
         let targetingVendorInstanceId = null;
         let activeAuthTabState = "login";
         let providerChartInstance = null; 
-        let activeSelectedPackageId = null; // NEW: Active selected package
+        let activeSelectedPackageId = null;
+        let countdownIntervalId = null; // NEW: Holds the interval for 24h timer
 
         let persistentContractsCollection = [
             {
@@ -552,8 +590,6 @@
         ];
 
         window.addEventListener('DOMContentLoaded', async () => {
-            
-            // NEW FEATURE: Seamless Session Persistence via Auth Listener
             if (typeof window.monitorAuthState === "function") {
                 window.monitorAuthState((userData) => {
                     if(userData) {
@@ -590,6 +626,26 @@
             synchronizeUserInterfaceState();
             lucide.createIcons();
         });
+
+        // NEW TIMER SYSTEM FOR APPROVAL WAITLIST
+        function startApprovalCountdown(deadlineStr) {
+            const deadline = new Date(deadlineStr).getTime();
+            const displayNode = document.getElementById('approvalCountdown');
+            if(countdownIntervalId) clearInterval(countdownIntervalId);
+
+            countdownIntervalId = setInterval(() => {
+                const distance = deadline - new Date().getTime();
+                if (distance < 0) {
+                    clearInterval(countdownIntervalId);
+                    displayNode.innerText = "00h 00m 00s";
+                    return;
+                }
+                const h = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+                const m = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
+                const s = Math.floor((distance % (1000 * 60)) / 1000);
+                displayNode.innerText = `${h.toString().padStart(2, '0')}h ${m.toString().padStart(2, '0')}m ${s.toString().padStart(2, '0')}s`;
+            }, 1000);
+        }
 
         function generateCategoryGridInterface() {
             const containerNode = document.getElementById('categoriesGridNode');
@@ -631,13 +687,15 @@
         function evaluateSearchCriteria() {
             const searchTokenQuery = document.getElementById('appKeywordSearchInput').value.toLowerCase().trim();
             const filteredOutcomes = vendorDatabaseCollection.filter(item => {
+                // EXCLUSION: Do not show Pending Approval or Rejected providers
+                const evaluationApproval = (item.approvalStatus !== "Pending Approval" && item.approvalStatus !== "Rejected");
                 const evaluationCategoryMatch = activeScopeCategoryFilter ? (item.category === activeScopeCategoryFilter) : true;
                 const evaluationKeywordMatch = searchTokenQuery ? (
                     item.name.toLowerCase().includes(searchTokenQuery) ||
                     item.category.toLowerCase().includes(searchTokenQuery) ||
                     item.keywords.some(kw => kw.includes(searchTokenQuery))
                 ) : true;
-                return evaluationCategoryMatch && evaluationKeywordMatch;
+                return evaluationCategoryMatch && evaluationKeywordMatch && evaluationApproval;
             });
             renderVendorDeckInterface(filteredOutcomes);
         }
@@ -696,6 +754,7 @@
                 document.getElementById('providerPortalWorkspace').classList.add('hidden');
                 document.getElementById('btnCustomerTrackOrders').classList.remove('hidden');
                 document.getElementById('btnProviderUpgradeTier').classList.add('hidden');
+                document.getElementById('btnProviderChat').classList.add('hidden');
             } else {
                 roleBadge.className = "text-[10px] font-mono font-black uppercase bg-purple-600 text-white px-2 py-1 rounded";
                 document.getElementById('customerPortalWorkspace').classList.add('hidden');
@@ -703,19 +762,30 @@
                 document.getElementById('btnCustomerTrackOrders').classList.add('hidden');
                 
                 const targetVendor = vendorDatabaseCollection.find(v => v.id === sessionUserRecord.associatedProviderId);
-                if(targetVendor && targetVendor.tier !== "Premium") {
-                    document.getElementById('btnProviderUpgradeTier').classList.remove('hidden');
-                } else {
+                
+                if(targetVendor && targetVendor.approvalStatus === "Pending Approval") {
+                    document.getElementById('providerActiveBlock').classList.add('hidden');
+                    document.getElementById('providerPendingBlock').classList.remove('hidden');
                     document.getElementById('btnProviderUpgradeTier').classList.add('hidden');
-                }
+                    document.getElementById('btnProviderChat').classList.add('hidden');
+                    startApprovalCountdown(targetVendor.approvalDeadline);
+                } else {
+                    document.getElementById('providerActiveBlock').classList.remove('hidden');
+                    document.getElementById('providerPendingBlock').classList.add('hidden');
+                    document.getElementById('btnProviderChat').classList.remove('hidden');
 
-                renderProviderAppointmentsLedger(sessionUserRecord.associatedProviderId);
-                mountProviderCustomizerData(sessionUserRecord.associatedProviderId);
-                initializePnLChart();
+                    if(targetVendor && targetVendor.tier !== "Premium") {
+                        document.getElementById('btnProviderUpgradeTier').classList.remove('hidden');
+                    } else {
+                        document.getElementById('btnProviderUpgradeTier').classList.add('hidden');
+                    }
+                    renderProviderAppointmentsLedger(sessionUserRecord.associatedProviderId);
+                    mountProviderCustomizerData(sessionUserRecord.associatedProviderId);
+                    initializePnLChart();
+                }
             }
         }
 
-        // NEW FEATURE: Handle Live Chat Initiation
         function openLiveChat() {
             if(!sessionUserRecord) {
                 alert("Please login to your account to start a live chat.");
@@ -723,12 +793,9 @@
                 return;
             }
             if(!targetingVendorInstanceId) return;
-            
-            // Open the new chat window/tab linking context parameters
             window.open(`chat.html?providerId=${targetingVendorInstanceId}&customerId=${sessionUserRecord.id}`, '_blank');
         }
 
-        // UPDATED: Service Package Support via Hire Button
         async function initiateServiceContract() {
             if(!sessionUserRecord) {
                 alert("Please login to your customer account to hire a professional.");
@@ -747,7 +814,6 @@
             let parsedBasePrice = 10000; 
             let finalPackageName = "Standard Base Service";
 
-            // If the provider has packages, enforce selection and use package price
             if(vendor.packages && vendor.packages.length > 0) {
                 if(!activeSelectedPackageId) {
                     alert("Please select a Service Package from the list above before hiring.");
@@ -759,7 +825,6 @@
                     finalPackageName = selectedPkg.name;
                 }
             } else {
-                // Fallback to legacy string base price parsing if no packages exist
                 const stringMatch = vendor.rates.match(/\d+(?:,\d+)?/);
                 if(stringMatch) {
                     parsedBasePrice = parseInt(stringMatch[0].replace(/,/g, ''));
@@ -791,7 +856,7 @@
                 persistentContractsCollection.push(newContract);
             }
             
-            alert(`Hire successful! ${vendor.name} has been notified. Contract Ref: ${generatedRefId}`);
+            alert(`New request submitted to ${vendor.name}. Pending Provider Decision. Contract Ref: ${generatedRefId}`);
             
             closePortfolioDrawer();
             synchronizeUserInterfaceState();
@@ -869,7 +934,6 @@
             }
         }
 
-        // NEW FEATURE: Provider Packages Editor Logic
         function renderProviderPackagesEditor(packages) {
             const container = document.getElementById('providerPackagesList');
             if(!packages || packages.length === 0) {
@@ -912,7 +976,6 @@
             
             vendor.packages.push(newPkg);
             
-            // Clear fields
             document.getElementById('pkgName').value = "";
             document.getElementById('pkgDesc').value = "";
             document.getElementById('pkgPrice').value = "";
@@ -947,7 +1010,8 @@
             }
 
             const providerId = sessionUserRecord.associatedProviderId;
-            const myContracts = persistentContractsCollection.filter(c => c.providerId === providerId);
+            // RULE: Only measure PnL on Accepted Work >= 1
+            const myContracts = persistentContractsCollection.filter(c => c.providerId === providerId && c.contractStep >= 1);
 
             const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
             const dynamicLabels = [];
@@ -1015,17 +1079,19 @@
             const matchingContracts = persistentContractsCollection.filter(c => c.providerId === providerIdContext);
             const matchingVendorRecord = vendorDatabaseCollection.find(v => v.id === providerIdContext);
             
-            const totalGrossVolume = matchingContracts.reduce((acc, current) => acc + current.basePriceValue, 0);
+            // PNL SHIELDING: Only calculate stats on explicitly Accepted work (contractStep >= 1)
+            const acceptedContracts = matchingContracts.filter(c => c.contractStep >= 1);
+            const totalGrossVolume = acceptedContracts.reduce((acc, current) => acc + current.basePriceValue, 0);
             const totalCommissionWithheld = totalGrossVolume * 0.05;
             const netProviderYield = totalGrossVolume - totalCommissionWithheld;
-            const activeContractsCount = matchingContracts.filter(c => c.contractStep < 2).length;
+            const activeContractsCount = acceptedContracts.filter(c => c.contractStep === 1).length;
 
             document.getElementById('providerEarningsWidget').innerText = `LKR ${netProviderYield.toLocaleString()}`;
             document.getElementById('providerGrossAmt').innerText = `LKR ${totalGrossVolume.toLocaleString()}`;
             document.getElementById('providerFeeAmt').innerText = `-LKR ${totalCommissionWithheld.toLocaleString()}`;
             document.getElementById('providerNetAmt').innerText = `LKR ${netProviderYield.toLocaleString()}`;
-            
             document.getElementById('providerActiveCountWidget').innerText = `${activeContractsCount} Pending`;
+            
             if(matchingVendorRecord) {
                 document.getElementById('providerRatingWidget').innerText = `⭐ ${matchingVendorRecord.stars.toFixed(1)} (${matchingVendorRecord.tier})`;
             }
@@ -1035,19 +1101,28 @@
                 return;
             }
 
+            // Notice we still map out matchingContracts to show pending decisions and rejected requests.
             listNode.innerHTML = matchingContracts.map(job => {
                 let statusBadgeHtml = "";
                 let progressionButtonActionHtml = "";
 
                 if(job.contractStep === 0) {
-                    statusBadgeHtml = `<span class="bg-blue-50 text-blue-600 border border-blue-100 text-[10px] font-bold font-mono px-2 py-0.5 rounded">HIRED</span>`;
-                    progressionButtonActionHtml = `<button onclick="advanceContractStateFromProviderPortal('${job.contractId}')" class="bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold px-3 py-1.5 rounded-lg transition shadow-sm">Accept & Start Work</button>`;
+                    statusBadgeHtml = `<span class="bg-amber-50 text-amber-600 border border-amber-100 text-[10px] font-bold font-mono px-2 py-0.5 rounded">PENDING DECISION</span>`;
+                    progressionButtonActionHtml = `
+                        <div class="flex gap-2">
+                            <button onclick="acceptWorkRequest('${job.contractId}')" class="bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold px-3 py-1.5 rounded-lg transition shadow-sm">Accept Work</button>
+                            <button onclick="rejectWorkRequest('${job.contractId}')" class="bg-red-600 hover:bg-red-700 text-white text-xs font-bold px-3 py-1.5 rounded-lg transition shadow-sm">Reject Work</button>
+                        </div>
+                    `;
                 } else if(job.contractStep === 1) {
-                    statusBadgeHtml = `<span class="bg-amber-50 text-amber-600 border border-amber-100 text-[10px] font-bold font-mono px-2 py-0.5 rounded">IN PROGRESS</span>`;
+                    statusBadgeHtml = `<span class="bg-blue-50 text-blue-600 border border-blue-100 text-[10px] font-bold font-mono px-2 py-0.5 rounded">ACCEPTED</span>`;
                     progressionButtonActionHtml = `<button onclick="advanceContractStateFromProviderPortal('${job.contractId}')" class="bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold px-3 py-1.5 rounded-lg transition shadow-sm">Mark As Completed</button>`;
-                } else {
+                } else if(job.contractStep === 2) {
                     statusBadgeHtml = `<span class="bg-emerald-50 text-emerald-600 border border-emerald-100 text-[10px] font-bold font-mono px-2 py-0.5 rounded">COMPLETED</span>`;
                     progressionButtonActionHtml = `<span class="text-xs text-slate-400 italic font-medium flex items-center gap-1"><i data-lucide="check-circle" class="w-3.5 h-3.5 text-emerald-500"></i> Remitted</span>`;
+                } else if(job.contractStep === -1) {
+                    statusBadgeHtml = `<span class="bg-red-50 text-red-600 border border-red-100 text-[10px] font-bold font-mono px-2 py-0.5 rounded">REJECTED</span>`;
+                    progressionButtonActionHtml = `<span class="text-xs text-slate-400 italic font-medium flex items-center gap-1"><i data-lucide="x-circle" class="w-3.5 h-3.5 text-red-500"></i> Closed</span>`;
                 }
 
                 const jobGross = job.basePriceValue;
@@ -1072,12 +1147,44 @@
             lucide.createIcons();
         }
 
+        // NEW WORKFLOW FUNCTIONS
+        window.acceptWorkRequest = async function(contractId) {
+            if(!confirm("Are you sure you want to accept this work request?")) return;
+            const targetContract = persistentContractsCollection.find(c => c.contractId === contractId);
+            if(targetContract) {
+                targetContract.contractStep = 1;
+                targetContract.acceptedAt = new Date().toISOString();
+                
+                if (typeof window.updateContractInFirebase === "function") {
+                    await window.updateContractInFirebase(contractId, { contractStep: 1, acceptedAt: targetContract.acceptedAt });
+                }
+                alert("Your service request has been accepted. (Customer has been notified)");
+                synchronizeUserInterfaceState();
+            }
+        }
+
+        window.rejectWorkRequest = async function(contractId) {
+            if(!confirm("Are you sure you want to reject this work request?")) return;
+            if(!confirm("This action cannot be undone. Are you absolutely sure?")) return;
+            const targetContract = persistentContractsCollection.find(c => c.contractId === contractId);
+            if(targetContract) {
+                targetContract.contractStep = -1;
+                targetContract.rejectedAt = new Date().toISOString();
+                
+                if (typeof window.updateContractInFirebase === "function") {
+                    await window.updateContractInFirebase(contractId, { contractStep: -1, rejectedAt: targetContract.rejectedAt });
+                }
+                alert("Your service request has been rejected. (Customer has been notified)");
+                synchronizeUserInterfaceState();
+            }
+        }
+
         async function advanceContractStateFromProviderPortal(targetContractId) {
             const targetContractRecord = persistentContractsCollection.find(c => c.contractId === targetContractId);
             if(!targetContractRecord) return;
 
-            if(targetContractRecord.contractStep < 2) {
-                targetContractRecord.contractStep++;
+            if(targetContractRecord.contractStep === 1) { // Only move from Accepted to Completed
+                targetContractRecord.contractStep = 2;
                 if (typeof window.updateContractInFirebase === "function") {
                     await window.updateContractInFirebase(targetContractId, { contractStep: targetContractRecord.contractStep });
                 }
@@ -1179,24 +1286,48 @@
                     
                     let assignedProviderId = null;
                     let providerData = null;
+                    let providerIdFiles = null;
 
                     if(role === "Provider") {
                         const nic = document.getElementById('authFormNIC').value.trim();
                         const cat = document.getElementById('authFormCategory').value.trim();
+                        
+                        // ID File Retrieval
+                        const fileNICFront = document.getElementById('authFormNICFront').files[0];
+                        const fileNICBack = document.getElementById('authFormNICBack').files[0];
+
+                        // Mandatory Block Check
                         if(!nic || !cat) { 
                             alert("NIC and Service Category are required for Providers."); 
                             submitBtn.innerText = originalText;
                             submitBtn.disabled = false;
                             return; 
                         }
-                        
+                        if(!fileNICFront || !fileNICBack) {
+                            alert("Both sides of the National ID card are required for provider verification.");
+                            submitBtn.innerText = originalText;
+                            submitBtn.disabled = false;
+                            return; 
+                        }
+
+                        // Type Verification Guardrails
+                        const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
+                        if (!allowedTypes.includes(fileNICFront.type) || !allowedTypes.includes(fileNICBack.type)) {
+                            alert("Unsupported file format. Please upload JPG, JPEG, PNG, or WEBP images.");
+                            submitBtn.innerText = originalText;
+                            submitBtn.disabled = false;
+                            return;
+                        }
+
+                        providerIdFiles = { front: fileNICFront, back: fileNICBack };
                         assignedProviderId = vendorDatabaseCollection.length + 1;
+                        
                         providerData = {
                             id: assignedProviderId,
                             name: name,
                             category: cat,
                             location: document.getElementById('authFormLocation').value || "Sri Lanka",
-                            stars: 5.0,
+                            stars: 0.0,
                             tier: "Standard Pro",
                             verified: false,
                             rates: document.getElementById('authFormRates').value || "LKR 10,000",
@@ -1204,7 +1335,10 @@
                             keywords: ["expert", "new"],
                             photos: [],
                             reviews: [],
-                            packages: []
+                            packages: [],
+                            approvalStatus: "Pending Approval",
+                            registrationDate: new Date().toISOString(),
+                            approvalDeadline: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString()
                         };
                     }
 
@@ -1217,13 +1351,13 @@
                     };
 
                     if (typeof window.registerUserToFirebase === "function") {
-                        const regResult = await window.registerUserToFirebase(newIdentity, providerData, password);
+                        const regResult = await window.registerUserToFirebase(newIdentity, providerData, password, providerIdFiles);
                         if(regResult.success) {
                             sessionUserRecord = regResult.user;
                             if(providerData) { vendorDatabaseCollection.push(providerData); }
                             internalRegisteredUsers.push(newIdentity);
 
-                            alert(`Account created successfully for ${name}. You have been automatically logged in!`);
+                            alert(`Account created successfully for ${name}.`);
                             
                             generateCategoryGridInterface();
                             synchronizeUserInterfaceState();
@@ -1259,27 +1393,35 @@
             if(matchingCustomerContracts.length === 0) {
                 container.innerHTML = `<p class="text-xs text-slate-400 py-6 text-center italic">No active operations.</p>`;
             } else {
-                container.innerHTML = matchingCustomerContracts.map(job => `
+                container.innerHTML = matchingCustomerContracts.map(job => {
+                    let statusLabel = 'PENDING DECISION';
+                    let badgeColor = 'bg-amber-100 text-amber-700';
+
+                    if(job.contractStep === 1) { statusLabel = 'ACCEPTED'; badgeColor = 'bg-blue-100 text-blue-700'; }
+                    if(job.contractStep === 2) { statusLabel = 'COMPLETED'; badgeColor = 'bg-emerald-100 text-emerald-700'; }
+                    if(job.contractStep === -1) { statusLabel = 'REJECTED'; badgeColor = 'bg-red-100 text-red-700'; }
+
+                    return `
                     <div class="py-4 space-y-3">
                         <div class="flex justify-between items-center">
                             <h4 class="text-sm font-black">${job.providerName}</h4>
-                            <div class="text-[10px] font-mono bg-slate-100 px-2 py-1 rounded">Status: ${job.contractStep === 2 ? 'COMPLETED' : 'PENDING'}</div>
+                            <div class="text-[10px] font-mono ${badgeColor} px-2 py-1 rounded font-bold tracking-wider">${statusLabel}</div>
                         </div>
                         <p class="text-xs text-slate-500 font-medium">Package: <span class="text-slate-800">${job.packageName || 'Base Rate'}</span> - LKR ${job.basePriceValue.toLocaleString()}</p>
                     </div>
-                `).join('');
+                    `
+                }).join('');
             }
             document.getElementById('customerOrdersModal').classList.replace('hidden', 'flex');
         }
 
         function closeCustomerOrdersModal() { document.getElementById('customerOrdersModal').classList.replace('flex', 'hidden'); }
 
-        // NEW FEATURE: Render Available Service Packages in Drawer
         function renderDrawerPackagesList(record) {
             const packagesNode = document.getElementById('drawerPackagesNode');
             const priceFooter = document.getElementById('drawerFooterPrice');
             
-            activeSelectedPackageId = null; // reset selection
+            activeSelectedPackageId = null;
             
             if(!record.packages || record.packages.length === 0) {
                 packagesNode.innerHTML = `<p class="text-xs text-slate-400 italic bg-white border border-slate-100 p-4 rounded-xl">This professional has not listed specific packages. Custom base rate applies.</p>`;
@@ -1348,7 +1490,6 @@
                 photosGrid.innerHTML = `<p class="text-xs text-slate-400 italic col-span-2">No portfolio images provided yet.</p>`;
             }
 
-            // Init packages list dynamically
             renderDrawerPackagesList(record);
 
             const overlay = document.getElementById('portfolioDrawerOverlay');
